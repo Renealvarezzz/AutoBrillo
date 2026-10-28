@@ -1,0 +1,17 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.vercel
+    container_name: autobrillo-api
+    restart: unless-stopped
+    env_file:
+      - .env.production
+    ports:
+      - "127.0.0.1:8080:8080"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.autobrillo-api.rule=Host(`autobrillo-api.179.199.139.243.nip.io`)"
+      - "traefik.http.routers.autobrillo-api.entrypoints=websecure"
+      - "traefik.http.routers.autobrillo-api.tls.certresolver=letsencrypt"
+      - "traefik.http.services.autobrillo-api.loadbalancer.server.port=8080"

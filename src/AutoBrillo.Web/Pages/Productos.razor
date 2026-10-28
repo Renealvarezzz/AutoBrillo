@@ -1,0 +1,120 @@
+@page "/productos"
+@inject ServicioAutenticacion Autenticacion
+@inject ServicioGestion Gestion
+@inject ServicioAlertas Alertas
+@inject NavigationManager Navegacion
+
+<PageTitle>Productos | AutoBrillo</PageTitle>
+
+@if (cargando)
+{
+    <p>Comprobando tu sesión...</p>
+}
+@if (!cargando)
+{
+    <div class="panel-abm">
+        <h1>Productos y servicios</h1>
+        <p>Registrá productos, insumos y servicios con sus precios y stock.</p>
+
+        <div class="formulario-abm formulario-abm-vertical">
+            <div class="campo-abm">
+                <label for="producto-descripcion">Descripción</label>
+                <input id="producto-descripcion" @bind="edicion.Descripcion" placeholder="Ej.: Lavado completo" maxlength="150" />
+            </div>
+            <div class="campo-abm">
+                <label for="producto-costo">Precio de costo</label>
+                <input id="producto-costo" @bind="edicion.PrecioDeCosto" type="number" min="0" step="1" inputmode="numeric" placeholder="0" />
+            </div>
+            <div class="campo-abm">
+                <label for="producto-venta">Precio de venta</label>
+                <input id="producto-venta" @bind="edicion.PrecioDeVenta" type="number" min="0" step="1" inputmode="numeric" placeholder="0" />
+            </div>
+            <div class="campo-abm">
+                <label for="producto-stock">Stock actual</label>
+                <input id="producto-stock" @bind="edicion.StockActual" type="number" min="0" step="1" inputmode="numeric" placeholder="0" />
+            </div>
+        </div>
+
+        <div class="campo-abm selector-tipos-producto">
+            <label>Tipos de producto</label>
+            <details class="desplegable-tipos-producto">
+                <summary>@TextoTiposSeleccionados</summary>
+                <div class="opciones-tipos-producto">
+                    @foreach (var tipo in tipos)
+                    {
+                        var seleccionado = TipoSeleccionado(tipo.Id_Tipos_Productos);
+                        <label class="opcion-tipo-producto @(seleccionado ? "seleccionada" : "")">
+                            <input type="checkbox" checked="@seleccionado" @onchange="() => CambiarTipo(tipo.Id_Tipos_Productos)" />
+                            <span>@tipo.Descripcion</span>
+                            <b aria-hidden="true">✓</b>
+                        </label>
+                    }
+                </div>
+            </details>
+            <small>Podés seleccionar uno o varios tipos.</small>
+        </div>
+
+        <div class="acciones-formulario">
+            <button @onclick="GuardarProducto">@(edicion.Id_Productos == 0 ? "Agregar producto" : "Guardar cambios")</button>
+            @if (edicion.Id_Productos != 0)
+            {
+                <button class="secundario" @onclick="() => edicion = new()">Cancelar</button>
+            }
+        </div>
+
+        <div class="tabla-contenedor">
+            <table>
+                <thead>
+                    <tr><th>Id</th><th>Descripción</th><th>Costo</th><th>Venta</th><th>Stock</th><th>Tipos</th><th>Estado</th><th>Acciones</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var producto in productos)
+                    {
+                        <tr>
+                            <td>@producto.Id_Productos</td>
+                            <td>@producto.Descripcion</td>
+                            <td>@producto.PrecioDeCosto.ToString("N0")</td>
+                            <td>@producto.PrecioDeVenta.ToString("N0")</td>
+                            <td>@producto.StockActual.ToString("N0")</td>
+                            <td>@string.Join(", ", producto.Tipos)</td>
+                            <td>@(producto.Activo ? "Activo" : "Desactivado")</td>
+                            <td class="acciones-tabla">
+                                <button class="boton-icono @(producto.Activo ? "peligro" : "secundario")" @onclick="() => CambiarEstado(producto)" title="@(producto.Activo ? "Desactivar" : "Activar")">@(producto.Activo ? "×" : "✓")</button>
+                                <button class="boton-icono secundario" @onclick="() => EditarProducto(producto)" title="Editar">✎</button>
+                                <button class="boton-icono peligro" @onclick="() => EliminarProducto(producto)" title="Eliminar">⌫</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="panel-abm" style="margin-top:1rem">
+        <h2>Tipos de producto</h2>
+        <div class="formulario-abm">
+            <input @bind="tipoEdicion.Descripcion" placeholder="Ej.: Servicio" maxlength="100" />
+            <button @onclick="GuardarTipo">@(tipoEdicion.Id_Tipos_Productos == 0 ? "Agregar tipo" : "Guardar tipo")</button>
+            @if (tipoEdicion.Id_Tipos_Productos != 0)
+            {
+                <button class="secundario" @onclick="() => tipoEdicion = new()">Cancelar</button>
+            }
+        </div>
+        <table>
+            <thead><tr><th>Id</th><th>Descripción</th><th>Acciones</th></tr></thead>
+            <tbody>
+                @foreach (var tipo in tipos)
+                {
+                    <tr>
+                        <td>@tipo.Id_Tipos_Productos</td>
+                        <td>@tipo.Descripcion</td>
+                        <td class="acciones-tabla">
+                            <button class="boton-icono secundario" @onclick="() => EditarTipo(tipo)">✎</button>
+                            <button class="boton-icono peligro" @onclick="() => EliminarTipo(tipo)">⌫</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

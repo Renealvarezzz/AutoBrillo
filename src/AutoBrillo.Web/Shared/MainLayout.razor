@@ -1,0 +1,21 @@
+@inherits LayoutComponentBase
+@inject ServicioAutenticacion Autenticacion
+@inject NavigationManager Navegacion
+
+@* Diseño compartido: rodea cada página con la barra superior y el área central. *@
+<div class="pagina">
+    <header class="barra-superior">
+        <a class="marca" href="inicio">Auto<span>Brillo</span></a>
+        @if (!string.IsNullOrWhiteSpace(usuario))
+        {
+            @* El botón ejecuta Salir, definido en MainLayout.razor.cs. *@
+            @if (esAdministrador)
+            {
+                <nav class="menu"><a href="roles">Roles</a><a href="usuarios">Usuarios</a><a href="personas">Personas</a><a href="productos">Productos</a></nav>
+            }
+            <div class="sesion"><span>Hola, @usuario</span><button @onclick="Salir">Salir</button></div>
+        }
+    </header>
+    @* @Body es el lugar donde Blazor inserta Login, Inicio u otra página. *@
+    <main class="contenido">@Body</main>
+</div>

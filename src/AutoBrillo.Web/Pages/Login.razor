@@ -1,0 +1,32 @@
+@page "/"
+@page "/login"
+@inject ServicioAutenticacion Autenticacion
+@inject ServicioAlertas Alertas
+@inject NavigationManager Navegacion
+
+@* Esta pantalla recibe Usuario y Contraseña y llama al método Ingresar de Login.razor.cs. *@
+<PageTitle>Acceso | AutoBrillo</PageTitle>
+
+@if (cargandoSesion)
+{
+    <p>Comprobando tu sesión...</p>
+}
+else
+{
+    <div class="tarjeta-acceso">
+        <p class="etiqueta">LAVADO PROFESIONAL</p>
+        <h1>Tu auto merece brillar.</h1>
+        <p>Ingresa para administrar AutoBrillo.</p>
+        <EditForm Model="credenciales" OnValidSubmit="Ingresar">
+            @* Activa las reglas de validación definidas en el modelo del formulario. *@
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            @* @bind mantiene sincronizado este input con credenciales.Nombre. *@
+            <label>Usuario <input @bind="credenciales.Nombre" @ref="campoUsuario" autofocus autocomplete="username" /></label>
+            <label>Contraseña <input @bind="credenciales.Password" type="password" autocomplete="current-password" /></label>
+
+            <button class="boton-principal" disabled="@enviando">@(enviando ? "Ingresando..." : "Ingresar")</button>
+        </EditForm>
+    </div>
+}

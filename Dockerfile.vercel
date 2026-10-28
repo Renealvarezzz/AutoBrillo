@@ -1,0 +1,16 @@
+# Construye la API y sus capas desde la solución AutoBrillo.
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS compilacion
+WORKDIR /src
+COPY AutoBrillo.slnx ./
+COPY src/AutoBrillo.Model/AutoBrillo.Model.csproj src/AutoBrillo.Model/
+COPY src/AutoBrillo.Repository/AutoBrillo.Repository.csproj src/AutoBrillo.Repository/
+COPY src/AutoBrillo.Api/AutoBrillo.Api.csproj src/AutoBrillo.Api/
+RUN dotnet restore src/AutoBrillo.Api/AutoBrillo.Api.csproj
+COPY src/ ./src/
+RUN dotnet publish src/AutoBrillo.Api/AutoBrillo.Api.csproj -c Release --no-restore -o /app/publicado /p:UseAppHost=false
+
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble-chiseled
+WORKDIR /app
+COPY --from=compilacion /app/publicado ./
+ENV PORT=8080
+ENTRYPOINT ["dotnet", "AutoBrillo.Api.dll"]

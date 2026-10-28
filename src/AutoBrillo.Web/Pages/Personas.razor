@@ -1,0 +1,106 @@
+@page "/personas"
+@inject ServicioAutenticacion Autenticacion
+@inject ServicioGestion Gestion
+@inject ServicioAlertas Alertas
+@inject NavigationManager Navegacion
+
+<PageTitle>Personas | AutoBrillo</PageTitle>
+
+@if (cargando)
+{
+    <p>Comprobando tu sesión...</p>
+}
+@if (!cargando)
+{
+    <div class="panel-abm">
+        <h1>Personas</h1>
+        <p>Administrá clientes, funcionarios y proveedores desde una sola ficha.</p>
+
+        <div class="formulario-abm formulario-abm-vertical">
+            <div class="campo-abm">
+                <label for="persona-nombre">Nombre completo</label>
+                <input id="persona-nombre" @bind="edicion.Nombre" placeholder="Ej.: Ana Gómez" maxlength="150" />
+            </div>
+            <div class="campo-abm">
+                <label for="persona-documento">Documento</label>
+                <input id="persona-documento" @bind="edicion.Documento" placeholder="Número de documento" maxlength="50" />
+            </div>
+            <div class="campo-abm">
+                <label for="persona-telefono">Teléfono</label>
+                <input id="persona-telefono" @bind="edicion.Telefono" placeholder="Número de teléfono" maxlength="30" inputmode="tel" />
+            </div>
+        </div>
+
+        <div class="grilla-roles">
+            @foreach (var tipo in tipos)
+            {
+                var seleccionado = TipoSeleccionado(tipo.Id_Tipos_Personas);
+                <label class="tarjeta-rol @(seleccionado ? "rol-seleccionado" : "")">
+                    <input type="checkbox" checked="@seleccionado" @onchange="() => CambiarTipo(tipo.Id_Tipos_Personas)" />
+                    <span class="detalle-rol"><small>TIPO</small><strong>@tipo.Descripcion</strong></span>
+                    <span class="estado-rol" aria-hidden="true">✓</span>
+                </label>
+            }
+        </div>
+
+        <div class="acciones-formulario">
+            <button @onclick="GuardarPersona">@(edicion.Id_Personas == 0 ? "Agregar persona" : "Guardar cambios")</button>
+            @if (edicion.Id_Personas != 0)
+            {
+                <button class="secundario" @onclick="CancelarPersona">Cancelar</button>
+            }
+        </div>
+
+        <div class="tabla-contenedor">
+            <table>
+                <thead><tr><th>Id</th><th>Nombre</th><th>Documento</th><th>Teléfono</th><th>Tipos</th><th>Estado</th><th>Acciones</th></tr></thead>
+                <tbody>
+                    @foreach (var persona in personas)
+                    {
+                        <tr>
+                            <td>@persona.Id_Personas</td>
+                            <td>@persona.Nombre</td>
+                            <td>@persona.Documento</td>
+                            <td>@persona.Telefono</td>
+                            <td>@string.Join(", ", persona.Tipos)</td>
+                            <td>@(persona.Activo ? "Activo" : "Desactivado")</td>
+                            <td class="acciones-tabla">
+                                <button class="boton-icono @(persona.Activo ? "peligro" : "secundario")" @onclick="() => CambiarEstado(persona)" title="@(persona.Activo ? "Desactivar" : "Activar")">@(persona.Activo ? "×" : "✓")</button>
+                                <button class="boton-icono secundario" @onclick="() => EditarPersona(persona)" title="Editar">✎</button>
+                                <button class="boton-icono peligro" @onclick="() => EliminarPersona(persona)" title="Eliminar">⌫</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="panel-abm" style="margin-top:1rem">
+        <h2>Tipos de persona</h2>
+        <div class="formulario-abm">
+            <input @bind="tipoEdicion.Descripcion" placeholder="Ej.: Cliente" maxlength="100" />
+            <button @onclick="GuardarTipo">@(tipoEdicion.Id_Tipos_Personas == 0 ? "Agregar tipo" : "Guardar tipo")</button>
+            @if (tipoEdicion.Id_Tipos_Personas != 0)
+            {
+                <button class="secundario" @onclick="() => tipoEdicion = new()">Cancelar</button>
+            }
+        </div>
+        <table>
+            <thead><tr><th>Id</th><th>Descripción</th><th>Acciones</th></tr></thead>
+            <tbody>
+                @foreach (var tipo in tipos)
+                {
+                    <tr>
+                        <td>@tipo.Id_Tipos_Personas</td>
+                        <td>@tipo.Descripcion</td>
+                        <td class="acciones-tabla">
+                            <button class="boton-icono secundario" @onclick="() => EditarTipo(tipo)" title="Editar">✎</button>
+                            <button class="boton-icono peligro" @onclick="() => EliminarTipo(tipo)" title="Eliminar">⌫</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

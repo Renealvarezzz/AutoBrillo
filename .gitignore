@@ -1,0 +1,18 @@
+# Compilación de .NET
+bin/
+obj/
+
+# Configuración y credenciales locales
+.env
+.env.*
+!.env.example
+.supabase-db-password
+appsettings.Development.json
+
+# Vercel y Supabase locales
+.vercel/
+supabase/.temp/
+
+# Archivos del sistema
+.DS_Store
+.vercel

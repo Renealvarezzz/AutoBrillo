@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/AutoBrillo.Api/AutoBrillo.Api.csproj" />
+    <Project Path="src/AutoBrillo.Model/AutoBrillo.Model.csproj" />
+    <Project Path="src/AutoBrillo.Repository/AutoBrillo.Repository.csproj" />
+    <Project Path="src/AutoBrillo.Web/AutoBrillo.Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/AutoBrillo.Web.Tests/AutoBrillo.Web.Tests.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,135 @@
+@page "/usuarios"
+@inject ServicioAutenticacion Autenticacion
+@inject ServicioGestion Gestion
+@inject ServicioAlertas Alertas
+@inject NavigationManager Navegacion
+
+<PageTitle>Usuarios | AutoBrillo</PageTitle>
+
+@if (cargando)
+{
+    <p>Comprobando tu sesión...</p>
+}
+@if (!cargando)
+{
+    <div class="panel-abm panel-usuarios">
+        <header class="encabezado-abm">
+            <div>
+                <p class="etiqueta">ADMINISTRACIÓN</p>
+                <h1>Usuarios y accesos</h1>
+                <p>Creá usuarios y elegí los roles que podrán utilizar dentro del lavadero.</p>
+            </div>
+            <div class="insignia-acceso" aria-hidden="true">◈</div>
+        </header>
+
+        <div class="formulario-usuario">
+            <div class="campo-usuario">
+                <label for="nombre-usuario">Nombre de usuario</label>
+                <input id="nombre-usuario" @bind="edicion.Nombre" placeholder="Ej.: María González" maxlength="100" />
+            </div>
+            <div class="campo-usuario campo-password">
+                <label for="password-usuario">@(edicion.Id_Usuarios == 0 ? "Contraseña" : "Nueva contraseña (opcional)")</label>
+                <div class="entrada-con-accion">
+                    <input id="password-usuario" @bind="edicion.Password" type="@(mostrarPasswords ? "text" : "password")" placeholder="Mínimo 6 caracteres" />
+                    <button type="button" class="alternar-password" @onclick="() => mostrarPasswords = !mostrarPasswords" aria-label="@(mostrarPasswords ? "Ocultar contraseñas" : "Ver contraseñas")" title="@(mostrarPasswords ? "Ocultar contraseñas" : "Ver contraseñas")" aria-pressed="@mostrarPasswords">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" />
+                            <circle cx="12" cy="12" r="2.5" />
+                            @if (mostrarPasswords)
+                            {
+                                <path d="M4 4l16 16" />
+                            }
+                        </svg>
+                        <span class="lector-pantalla">@(mostrarPasswords ? "Ocultar contraseñas" : "Ver contraseñas")</span>
+                    </button>
+                </div>
+            </div>
+            <div class="campo-usuario campo-password">
+                <label for="confirmar-password-usuario">Confirmar contraseña</label>
+                <div class="entrada-con-accion">
+                    <input id="confirmar-password-usuario" @bind="confirmacionPassword" type="@(mostrarPasswords ? "text" : "password")" placeholder="Repetí la contraseña" />
+                    <button type="button" class="alternar-password" @onclick="() => mostrarPasswords = !mostrarPasswords" aria-label="@(mostrarPasswords ? "Ocultar contraseñas" : "Ver contraseñas")" title="@(mostrarPasswords ? "Ocultar contraseñas" : "Ver contraseñas")" aria-pressed="@mostrarPasswords">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" />
+                            <circle cx="12" cy="12" r="2.5" />
+                            @if (mostrarPasswords)
+                            {
+                                <path d="M4 4l16 16" />
+                            }
+                        </svg>
+                        <span class="lector-pantalla">@(mostrarPasswords ? "Ocultar contraseñas" : "Ver contraseñas")</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="acceso-roles" aria-labelledby="titulo-roles">
+            <div class="encabezado-roles">
+                <div>
+                    <p class="etiqueta">ROL Y ACCESO</p>
+                    <h2 id="titulo-roles">Elegí los roles del usuario</h2>
+                    <p>Marcá uno o más roles según las tareas que realizará.</p>
+                </div>
+                <span class="contador-roles">@edicion.Id_Roles.Count seleccionado@(edicion.Id_Roles.Count == 1 ? "" : "s")</span>
+            </div>
+            <div class="grilla-roles">
+                @foreach (var rol in roles)
+                {
+                    var seleccionado = EstaSeleccionado(rol.Id_Roles);
+                    <label class="tarjeta-rol @(seleccionado ? "rol-seleccionado" : "")">
+                        <input type="checkbox" checked="@seleccionado" @onchange="() => CambiarRol(rol.Id_Roles)" />
+                        <span class="marca-rol" aria-hidden="true">@rol.Descripcion[..1].ToUpper()</span>
+                        <span class="detalle-rol">
+                            <small>ROL</small>
+                            <strong>@rol.Descripcion</strong>
+                        </span>
+                        <span class="estado-rol" aria-hidden="true">✓</span>
+                    </label>
+                }
+            </div>
+        </div>
+
+        <div class="acciones-formulario">
+            <button @onclick="Guardar">@(edicion.Id_Usuarios == 0 ? "Crear usuario" : "Guardar cambios")</button>
+            @if (edicion.Id_Usuarios != 0)
+            {
+                <button class="secundario" @onclick="Cancelar">Cancelar edición</button>
+            }
+        </div>
+
+        <div class="tabla-contenedor">
+            <table>
+                <thead><tr><th>Id</th><th>Usuario</th><th>Roles asignados</th><th>Estado</th><th>Acciones</th></tr></thead>
+                <tbody>
+                    @foreach (var usuario in usuarios)
+                    {
+                        <tr>
+                            <td>@usuario.Id_Usuarios</td>
+                            <td>@usuario.Nombre</td>
+                            <td>@string.Join(", ", usuario.Roles)</td>
+                            <td>@(usuario.Activo ? "Activo" : "Desactivado")</td>
+                            <td class="acciones-tabla">
+                                <button type="button" class="boton-icono @(usuario.Activo ? "peligro" : "secundario")" @onclick="() => CambiarEstado(usuario)" aria-label="@(usuario.Activo ? "Desactivar usuario" : "Activar usuario")" title="@(usuario.Activo ? "Desactivar usuario" : "Activar usuario")">
+                                    @if (usuario.Activo)
+                                    {
+                                        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M9 9l6 6M15 9l-6 6" /></svg>
+                                    }
+                                    else
+                                    {
+                                        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="m8 12 2.5 2.5L16 9" /></svg>
+                                    }
+                                </button>
+                                <button type="button" class="boton-icono secundario" @onclick="() => Editar(usuario)" aria-label="Editar usuario" title="Editar usuario">
+                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4l10-10-4-4L4 16v4Z" /><path d="m12.5 7.5 4 4" /></svg>
+                                </button>
+                                <button type="button" class="boton-icono peligro" @onclick="() => Eliminar(usuario)" aria-label="Eliminar usuario" title="Eliminar usuario">
+                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16" /><path d="M9 7V4h6v3" /><path d="M6 7l1 13h10l1-13" /><path d="M10 11v5M14 11v5" /></svg>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

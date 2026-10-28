@@ -1,0 +1,47 @@
+@page "/roles"
+@inject ServicioAutenticacion Autenticacion
+@inject ServicioGestion Gestion
+@inject ServicioAlertas Alertas
+@inject NavigationManager Navegacion
+
+<PageTitle>Roles | AutoBrillo</PageTitle>
+
+@if (cargando)
+{
+    <p>Comprobando tu sesión...</p>
+}
+@if (!cargando)
+{
+    <div class="panel-abm">
+        <h1>ABM de Roles</h1>
+        <p>Creá, editá o eliminá los roles disponibles para los usuarios.</p>
+        <div class="formulario-abm">
+            <input @bind="edicion.Descripcion" placeholder="Descripción del rol" maxlength="100" />
+            <button @onclick="Guardar">@(edicion.Id_Roles == 0 ? "Agregar rol" : "Guardar cambios")</button>
+            @if (edicion.Id_Roles != 0)
+            {
+                <button class="secundario" @onclick="Cancelar">Cancelar</button>
+            }
+        </div>
+        <table>
+            <thead><tr><th>Id</th><th>Descripción</th><th>Acciones</th></tr></thead>
+            <tbody>
+                @foreach (var rol in roles)
+                {
+                    <tr>
+                        <td>@rol.Id_Roles</td>
+                        <td>@rol.Descripcion</td>
+                        <td class="acciones-tabla">
+                            <button type="button" class="boton-icono secundario" @onclick="() => Editar(rol)" aria-label="Editar rol" title="Editar rol">
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4l10-10-4-4L4 16v4Z" /><path d="m12.5 7.5 4 4" /></svg>
+                            </button>
+                            <button type="button" class="boton-icono peligro" @onclick="() => Eliminar(rol)" aria-label="Eliminar rol" title="Eliminar rol">
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16" /><path d="M9 7V4h6v3" /><path d="M6 7l1 13h10l1-13" /><path d="M10 11v5M14 11v5" /></svg>
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
