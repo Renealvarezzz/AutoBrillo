@@ -13,7 +13,7 @@ public class MetadatosWhatsAppTests
         Assert.Contains("<meta name=\"description\" content=\"Sistema para gestionar usuarios, roles y operaciones del lavadero.\" />", contenido);
         Assert.Contains("<meta property=\"og:title\" content=\"AutoBrillo\" />", contenido);
         Assert.Contains("<meta property=\"og:description\" content=\"Sistema para gestionar usuarios, roles y operaciones del lavadero.\" />", contenido);
-        Assert.Contains("<meta property=\"og:url\" content=\"https://autobrillo-web.vercel.app/\" />", contenido);
+        Assert.Contains("<meta property=\"og:url\" content=\"https://autobrillo-lemon.vercel.app/\" />", contenido);
     }
 
     private static string EncontrarProyecto()

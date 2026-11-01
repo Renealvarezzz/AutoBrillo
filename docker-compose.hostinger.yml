@@ -11,7 +11,7 @@ services:
       - "127.0.0.1:8080:8080"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.autobrillo-api.rule=Host(`autobrillo-api.179.199.139.243.nip.io`)"
+      - "traefik.http.routers.autobrillo-api.rule=Host(`api.autobrillo.tech`)"
       - "traefik.http.routers.autobrillo-api.entrypoints=websecure"
       - "traefik.http.routers.autobrillo-api.tls.certresolver=letsencrypt"
       - "traefik.http.services.autobrillo-api.loadbalancer.server.port=8080"

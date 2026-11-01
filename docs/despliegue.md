@@ -15,7 +15,7 @@ La web se publica como contenido estático. El archivo `src/AutoBrillo.Web/wwwro
 
 ```json
 {
-  "ApiUrl": "https://autobrillo-api.179.199.139.243.nip.io/"
+  "ApiUrl": "https://api.autobrillo.tech/"
 }
 ```
 
@@ -51,7 +51,7 @@ CONNECTION_STRING=Host=...;Database=...;Username=...;Password=...;SSL Mode=Requi
 JWT_SECRET=clave-privada-larga
 JWT_ISSUER=AutoBrillo.Api
 JWT_AUDIENCE=AutoBrillo.Web
-WEB_ORIGIN=https://autobrillo-web.vercel.app
+WEB_ORIGIN=https://autobrillo-lemon.vercel.app
 PORT=8080
 ```
 
@@ -75,11 +75,11 @@ curl http://127.0.0.1:8080/health
 
 ## Verificación posterior al despliegue
 
-1. Abrir `https://autobrillo-web.vercel.app`.
+1. Abrir `https://autobrillo-lemon.vercel.app`.
 2. Confirmar que aparece el formulario de inicio de sesión.
 3. Iniciar sesión con un usuario existente.
 4. Comprobar que se muestra la página Inicio.
-5. Consultar `https://autobrillo-api.179.199.139.243.nip.io/health` y verificar la respuesta `{"estado":"correcto"}`.
+5. Consultar `https://api.autobrillo.tech/health` y verificar la respuesta `{"estado":"correcto"}`.
 
 ## Buenas prácticas
 

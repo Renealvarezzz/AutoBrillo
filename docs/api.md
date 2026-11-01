@@ -3,7 +3,7 @@
 ## Dirección publicada
 
 ```text
-https://autobrillo-api.179.199.139.243.nip.io/
+https://api.autobrillo.tech/
 ```
 
 Todas las respuestas usan JSON.
@@ -111,13 +111,13 @@ Authorization: Bearer TOKEN_JWT
 Comprobar el estado:
 
 ```bash
-curl https://autobrillo-api.179.199.139.243.nip.io/health
+curl https://api.autobrillo.tech/health
 ```
 
 Registrar un usuario:
 
 ```bash
-curl -X POST https://autobrillo-api.179.199.139.243.nip.io/api/auth/register \
+curl -X POST https://api.autobrillo.tech/api/auth/register \
   -H 'Content-Type: application/json' \
   -d '{"nombre":"ejemplo","password":"clave-segura"}'
 ```
@@ -125,7 +125,7 @@ curl -X POST https://autobrillo-api.179.199.139.243.nip.io/api/auth/register \
 Iniciar sesión:
 
 ```bash
-curl -X POST https://autobrillo-api.179.199.139.243.nip.io/api/auth/login \
+curl -X POST https://api.autobrillo.tech/api/auth/login \
   -H 'Content-Type: application/json' \
   -d '{"nombre":"ejemplo","password":"clave-segura"}'
 ```

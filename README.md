@@ -4,8 +4,8 @@ Sistema académico sencillo para la gestión inicial de un lavadero de autos. El
 
 ## Enlaces publicados
 
-- **Aplicación web:** https://autobrillo-web.vercel.app
-- **API:** https://autobrillo-api.179.199.139.243.nip.io/health
+- **Aplicación web:** https://autobrillo-lemon.vercel.app
+- **API:** https://api.autobrillo.tech/health
 - **Base de datos:** PostgreSQL administrado en Supabase
 
 ## Funcionalidades actuales
