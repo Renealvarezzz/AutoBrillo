@@ -1,0 +1,47 @@
+@using AutoBrillo.Web.Servicios
+<div class="grilla-campos">
+    <div class="campo-abm"><label>Producto</label>
+        <select @bind="idProducto" @bind:after="CambiarProducto"><option value="0">Seleccionar...</option>
+            @foreach (var p in Productos.Where(x => x.Activo)) { <option value="@p.Id_Productos">@p.Descripcion (stock @p.StockActual.ToString("N0"))</option> }
+        </select></div>
+    <div class="campo-abm"><label>Cantidad</label><input type="number" min="1" step="1" @bind="cantidad" /></div>
+    <div class="campo-abm"><label>Precio unitario</label><input type="number" min="0" step="1" @bind="precio" /></div>
+    <div class="campo-abm"><label>&nbsp;</label><button type="button" class="secundario boton-ancho" @onclick="Agregar">+ Agregar línea</button></div>
+</div>
+@if (Lineas.Count > 0)
+{
+    <table>
+        <thead><tr><th>Producto</th><th>Cantidad</th><th>Precio</th><th>Subtotal</th><th></th></tr></thead>
+        <tbody>
+            @foreach (var l in Lineas)
+            {
+                <tr><td>@l.Producto</td><td>@l.Cantidad.ToString("N0")</td><td>@l.PrecioUnitario.ToString("N0")</td><td>@((l.Cantidad * l.PrecioUnitario).ToString("N0"))</td>
+                    <td><button type="button" class="boton-icono peligro" title="Quitar" aria-label="Quitar línea" @onclick="() => Lineas.Remove(l)">✕</button></td></tr>
+            }
+            <tr><th colspan="3">Total</th><th>@Lineas.Sum(l => l.Cantidad * l.PrecioUnitario).ToString("N0")</th><th></th></tr>
+        </tbody>
+    </table>
+}
+
+@code {
+    [Parameter] public List<ProductoDto> Productos { get; set; } = [];
+    [Parameter] public List<LineaDto> Lineas { get; set; } = [];
+    [Parameter] public bool UsarPrecioCosto { get; set; }
+    private int idProducto;
+    private decimal cantidad = 1;
+    private decimal precio;
+
+    private void CambiarProducto()
+    {
+        var p = Productos.FirstOrDefault(x => x.Id_Productos == idProducto);
+        if (p is not null) precio = UsarPrecioCosto ? p.PrecioDeCosto : p.PrecioDeVenta;
+    }
+
+    private void Agregar()
+    {
+        var p = Productos.FirstOrDefault(x => x.Id_Productos == idProducto);
+        if (p is null || cantidad <= 0) return;
+        Lineas.Add(new LineaDto { Id_Productos = p.Id_Productos, Producto = p.Descripcion, Cantidad = cantidad, PrecioUnitario = precio });
+        idProducto = 0; cantidad = 1; precio = 0;
+    }
+}

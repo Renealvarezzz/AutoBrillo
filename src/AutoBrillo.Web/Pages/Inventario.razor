@@ -1,0 +1,47 @@
+@page "/inventario"
+@inherits PaginaOperativa
+
+<PageTitle>Inventario | AutoBrillo</PageTitle>
+
+@if (cargando) { <p>Comprobando tu sesión...</p> }
+else
+{
+    <div class="panel-abm">
+        <p class="etiqueta">STOCK</p>
+        <h1>Movimientos de stock</h1>
+        <p>El saldo de cada producto o insumo se ve en la lista. Las compras lo aumentan y el consumo de un servicio lo disminuye. Acá también podés registrar ajustes.</p>
+        <div class="grilla-campos">
+            <div class="campo-abm"><label>Producto</label>
+                <select @bind="nuevo.Id_Productos"><option value="0">Seleccionar...</option>
+                    @foreach (var p in productos.Where(x => x.Activo)) { <option value="@p.Id_Productos">@p.Descripcion (stock @Gs(p.StockActual))</option> }
+                </select></div>
+            <div class="campo-abm"><label>Movimiento</label>
+                <select @bind="nuevo.Origen">
+                    <option value="Consumo interno">Salida: consumo interno</option>
+                    <option value="Pérdida">Salida: pérdida o rotura</option>
+                    <option value="Ajuste negativo">Salida: ajuste de inventario</option>
+                    <option value="Ajuste positivo">Entrada: ajuste de inventario</option>
+                </select></div>
+            <div class="campo-abm"><label>Cantidad</label><input type="number" min="1" step="1" @bind="nuevo.Cantidad" /></div>
+            <div class="campo-abm"><label>Observación</label><input maxlength="250" @bind="nuevo.Observacion" placeholder="Opcional" /></div>
+        </div>
+        <div class="acciones-formulario"><button @onclick="Registrar">Registrar movimiento</button></div>
+
+        <div class="formulario-abm">
+            <select @bind="filtroProducto" @bind:after="CargarAsync"><option value="0">Todos los productos</option>
+                @foreach (var p in productos) { <option value="@p.Id_Productos">@p.Descripcion</option> }
+            </select>
+        </div>
+        <div class="tabla-contenedor">
+            <table>
+                <thead><tr><th>Fecha</th><th>Producto</th><th>Tipo</th><th>Origen</th><th>Cantidad</th><th>Stock resultante</th><th>Ref.</th><th>Observación</th></tr></thead>
+                <tbody>
+                    @foreach (var m in movimientos)
+                    {
+                        <tr><td>@Fecha(m.Fecha)</td><td>@m.Producto</td><td><span class="estado-chip @(m.Tipo == "Entrada" ? "ok" : "alerta")">@m.Tipo</span></td><td>@m.Origen</td><td>@Gs(m.Cantidad)</td><td>@Gs(m.StockResultante)</td><td>@m.Id_Referencia</td><td>@m.Observacion</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

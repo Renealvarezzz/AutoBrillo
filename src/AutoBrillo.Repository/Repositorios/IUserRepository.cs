@@ -20,6 +20,9 @@ public interface IUserRepository
     /// <summary>Indica si ya existe un usuario con el nombre recibido.</summary>
     Task<bool> ExisteNombreAsync(string nombre, CancellationToken cancellationToken = default);
 
+    /// <summary>Indica si otra cuenta ya está vinculada a esa persona.</summary>
+    Task<bool> PersonaYaVinculadaAsync(int idPersona, int? excluirUsuarioId, CancellationToken cancellationToken = default);
+
     /// <summary>Prepara un usuario nuevo para ser guardado.</summary>
     Task AgregarAsync(Usuario usuario, CancellationToken cancellationToken = default);
 

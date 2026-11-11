@@ -40,6 +40,7 @@ public class AccesoUsuarioTests
         public Task<List<Usuario>> ObtenerTodosAsync(CancellationToken cancellationToken = default) => Task.FromResult(new List<Usuario>());
         public Task<Usuario?> ObtenerPorIdAsync(int id, CancellationToken cancellationToken = default) => Task.FromResult<Usuario?>(null);
         public Task<bool> ExisteNombreAsync(string nombre, CancellationToken cancellationToken = default) => Task.FromResult(false);
+        public Task<bool> PersonaYaVinculadaAsync(int idPersona, int? excluirUsuarioId, CancellationToken cancellationToken = default) => Task.FromResult(false);
         public Task AgregarAsync(Usuario entidad, CancellationToken cancellationToken = default) => Task.CompletedTask;
         public void Eliminar(Usuario entidad) { }
         public Task GuardarCambiosAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;

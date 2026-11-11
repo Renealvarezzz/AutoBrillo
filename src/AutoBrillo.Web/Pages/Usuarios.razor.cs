@@ -9,6 +9,8 @@ public partial class Usuarios
     private List<UsuarioDto> usuarios = [];
     private List<RolDto> roles = [];
     private UsuarioEdicionDto edicion = new();
+    private List<PersonaDto> personas = [];
+    private int idPersona;
     private string confirmacionPassword = string.Empty;
     private bool mostrarPasswords;
 
@@ -24,6 +26,7 @@ public partial class Usuarios
     {
         usuarios = await Gestion.ObtenerUsuariosAsync() ?? [];
         roles = await Gestion.ObtenerRolesAsync() ?? [];
+        personas = await Gestion.ObtenerPersonasAsync() ?? [];
     }
 
     private async Task Guardar()
@@ -41,6 +44,7 @@ public partial class Usuarios
             return;
         }
 
+        edicion.Id_Personas = idPersona == 0 ? null : idPersona;
         var error = await Gestion.GuardarUsuarioAsync(edicion);
         if (error is not null)
         {
@@ -54,7 +58,8 @@ public partial class Usuarios
 
     private void Editar(UsuarioDto usuario)
     {
-        edicion = new UsuarioEdicionDto { Id_Usuarios = usuario.Id_Usuarios, Nombre = usuario.Nombre, Id_Roles = [.. usuario.Id_Roles] };
+        edicion = new UsuarioEdicionDto { Id_Usuarios = usuario.Id_Usuarios, Nombre = usuario.Nombre, Id_Roles = [.. usuario.Id_Roles], Id_Personas = usuario.Id_Personas };
+        idPersona = usuario.Id_Personas ?? 0;
         confirmacionPassword = string.Empty;
         mostrarPasswords = false;
     }
@@ -70,6 +75,7 @@ public partial class Usuarios
     private void Cancelar()
     {
         edicion = new();
+        idPersona = 0;
         confirmacionPassword = string.Empty;
         mostrarPasswords = false;
     }

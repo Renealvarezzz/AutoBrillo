@@ -21,6 +21,7 @@ builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(apiUrl) }
 builder.Services.AddScoped<ServicioAutenticacion>();
 builder.Services.AddScoped<ServicioGestion>();
 builder.Services.AddScoped<ServicioAlertas>();
+builder.Services.AddScoped<ServicioOperaciones>();
 
 // Construye e inicia la aplicación en el navegador.
 await builder.Build().RunAsync();

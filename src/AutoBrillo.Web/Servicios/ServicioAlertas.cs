@@ -38,6 +38,9 @@ public class ServicioAlertas(IJSRuntime javascript)
     public ValueTask MostrarEliminacionExitosaAsync(string mensaje)
         => javascript.InvokeVoidAsync("autobrilloAlerta.exito", mensaje);
 
+    public ValueTask MostrarAvisoAsync(string titulo, string mensaje)
+        => javascript.InvokeVoidAsync("autobrilloAlerta.aviso", titulo, mensaje);
+
     public ValueTask MostrarErrorEliminarAsync(string detalle)
         => javascript.InvokeVoidAsync("autobrilloAlerta.error", detalle);
 }

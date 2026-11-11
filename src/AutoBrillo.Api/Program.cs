@@ -31,8 +31,14 @@ builder.Services.AddScoped<IPersonaRepository, RepositorioPersonas>();
 builder.Services.AddScoped<ITipoPersonaRepository, RepositorioTiposPersonas>();
 builder.Services.AddScoped<IProductoRepository, RepositorioProductos>();
 builder.Services.AddScoped<ITipoProductoRepository, RepositorioTiposProductos>();
+builder.Services.AddScoped<ServicioOperativo>();
+builder.Services.AddScoped<IRepositorioInventario, RepositorioInventario>();
+builder.Services.AddScoped<IRepositorioCompras, RepositorioCompras>();
+builder.Services.AddScoped<IRepositorioCatalogos, RepositorioCatalogos>();
+builder.Services.AddScoped<IRepositorioVehiculos, RepositorioVehiculos>();
+builder.Services.AddScoped<IRepositorioServicios, RepositorioServicios>();
 builder.Services.AddSingleton<PasswordHasher>();
-builder.Services.AddControllers();
+builder.Services.AddControllers(opciones => opciones.Filters.Add<AutoBrillo.Api.Seguridad.FiltroReglasNegocio>());
 
 // CORS define qué sitio web puede llamar a la API desde un navegador.
 // En producción WEB_ORIGIN contiene la URL pública de la web de Vercel.

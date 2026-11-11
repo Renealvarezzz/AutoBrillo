@@ -17,7 +17,7 @@
             <div>
                 <p class="etiqueta">ADMINISTRACIÓN</p>
                 <h1>Usuarios y accesos</h1>
-                <p>Creá usuarios y elegí los roles que podrán utilizar dentro del lavadero.</p>
+                <p>Creá usuarios, asigná o modificá sus roles y, si corresponde, vinculá la cuenta a un cliente, funcionario o proveedor.</p>
             </div>
             <div class="insignia-acceso" aria-hidden="true">◈</div>
         </header>
@@ -61,6 +61,16 @@
                     </button>
                 </div>
             </div>
+            <div class="campo-usuario">
+                <label for="persona-usuario">Persona vinculada (opcional)</label>
+                <select id="persona-usuario" @bind="idPersona">
+                    <option value="0">Sin persona vinculada</option>
+                    @foreach (var persona in personas)
+                    {
+                        <option value="@persona.Id_Personas">@persona.Nombre (@string.Join(", ", persona.Tipos))</option>
+                    }
+                </select>
+            </div>
         </div>
 
         <div class="acceso-roles" aria-labelledby="titulo-roles">
@@ -99,13 +109,14 @@
 
         <div class="tabla-contenedor">
             <table>
-                <thead><tr><th>Id</th><th>Usuario</th><th>Roles asignados</th><th>Estado</th><th>Acciones</th></tr></thead>
+                <thead><tr><th>Id</th><th>Usuario</th><th>Persona</th><th>Roles asignados</th><th>Estado</th><th>Acciones</th></tr></thead>
                 <tbody>
                     @foreach (var usuario in usuarios)
                     {
                         <tr>
                             <td>@usuario.Id_Usuarios</td>
                             <td>@usuario.Nombre</td>
+                            <td>@(string.IsNullOrWhiteSpace(usuario.Persona) ? "—" : usuario.Persona)</td>
                             <td>@string.Join(", ", usuario.Roles)</td>
                             <td>@(usuario.Activo ? "Activo" : "Desactivado")</td>
                             <td class="acciones-tabla">
