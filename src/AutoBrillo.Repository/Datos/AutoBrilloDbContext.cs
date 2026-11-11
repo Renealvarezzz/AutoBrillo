@@ -8,7 +8,7 @@ namespace AutoBrillo.Repository.Datos;
 /// EF Core usa esta clase para saber qué tabla y qué columnas debe consultar.
 /// No depende de Supabase; por eso facilita una futura migración a otra base compatible.
 /// </summary>
-public class AutoBrilloDbContext(DbContextOptions<AutoBrilloDbContext> options) : DbContext(options)
+public partial class AutoBrilloDbContext(DbContextOptions<AutoBrilloDbContext> options) : DbContext(options)
 {
     /// <summary>
     /// Representa la tabla usuarios dentro del código.
@@ -139,5 +139,7 @@ public class AutoBrilloDbContext(DbContextOptions<AutoBrilloDbContext> options) 
         tipoProducto.Property(x => x.Id_Tipos_Productos).HasColumnName("Id_Tipos_Productos");
         tipoProducto.Property(x => x.Descripcion).HasColumnName("Descripcion").HasMaxLength(100).IsRequired();
         tipoProducto.HasIndex(x => x.Descripcion).IsUnique();
+
+        ConfigurarOperaciones(modelBuilder);
     }
 }

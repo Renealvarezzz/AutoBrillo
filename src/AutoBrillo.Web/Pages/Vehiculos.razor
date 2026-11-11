@@ -1,0 +1,50 @@
+@page "/vehiculos"
+@inherits PaginaOperativa
+
+<PageTitle>Vehículos | AutoBrillo</PageTitle>
+
+@if (cargando) { <p>Comprobando tu sesión...</p> }
+else
+{
+    <div class="panel-abm">
+        <p class="etiqueta">PERSONAS</p>
+        <h1>Vehículos del cliente</h1>
+        <p>Cada vehículo pertenece a un cliente activo. La patente no se repite.</p>
+        <div class="grilla-campos">
+            <div class="campo-abm"><label for="vehiculo-cliente">Cliente</label>
+                <select id="vehiculo-cliente" @bind="idCliente"><option value="0">Seleccionar...</option>
+                    @foreach (var c in clientes) { <option value="@c.Id_Personas">@c.Nombre</option> }
+                </select></div>
+            <div class="campo-abm"><label for="vehiculo-tipo">Tipo</label>
+                <select id="vehiculo-tipo" @bind="idTipo"><option value="0">Seleccionar...</option>
+                    @foreach (var t in tipos.Where(x => x.Activo || x.Id_Tipos_Vehiculos == idTipo)) { <option value="@t.Id_Tipos_Vehiculos">@t.Descripcion</option> }
+                </select></div>
+            <div class="campo-abm"><label for="vehiculo-patente">Patente</label><input id="vehiculo-patente" maxlength="20" @bind="patente" placeholder="Ej.: ABC 123" /></div>
+            <div class="campo-abm"><label for="vehiculo-marca">Marca</label><input id="vehiculo-marca" maxlength="80" @bind="marca" /></div>
+            <div class="campo-abm"><label for="vehiculo-modelo">Modelo</label><input id="vehiculo-modelo" maxlength="80" @bind="modelo" /></div>
+            <div class="campo-abm"><label for="vehiculo-color">Color</label><input id="vehiculo-color" maxlength="40" @bind="color" /></div>
+        </div>
+        <div class="acciones-formulario">
+            <button @onclick="Guardar">@(idVehiculo == 0 ? "Agregar vehículo" : "Guardar vehículo")</button>
+            @if (idVehiculo != 0) { <button class="secundario" @onclick="Limpiar">Cancelar</button> }
+        </div>
+        <div class="tabla-contenedor">
+            <table>
+                <thead><tr><th>Cliente</th><th>Patente</th><th>Tipo</th><th>Marca</th><th>Modelo</th><th>Color</th><th>Estado</th><th>Acciones</th></tr></thead>
+                <tbody>
+                    @foreach (var v in vehiculos)
+                    {
+                        <tr>
+                            <td>@v.Cliente</td><td>@v.Patente</td><td>@v.TipoVehiculo</td><td>@v.Marca</td><td>@v.Modelo</td><td>@v.Color</td>
+                            <td>@(v.Activo ? "Activo" : "Desactivado")</td>
+                            <td class="acciones-tabla">
+                                <button type="button" class="boton-icono secundario" title="Editar" aria-label="Editar vehículo" @onclick="() => Editar(v)">✎</button>
+                                <button type="button" class="boton-icono @(v.Activo ? "peligro" : "secundario")" title="@(v.Activo ? "Desactivar" : "Activar")" aria-label="@(v.Activo ? "Desactivar vehículo" : "Activar vehículo")" @onclick="() => CambiarEstado(v)">@(v.Activo ? "⏻" : "✓")</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

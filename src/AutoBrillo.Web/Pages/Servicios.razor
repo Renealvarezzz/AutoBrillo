@@ -1,0 +1,153 @@
+@page "/servicios"
+@inherits PaginaOperativa
+
+<PageTitle>Servicios | AutoBrillo</PageTitle>
+
+@if (cargando) { <p>Comprobando tu sesión...</p> }
+else
+{
+    <div class="panel-abm">
+        <p class="etiqueta">PRECIOS</p>
+        <h1>Servicios y precios</h1>
+        <p>El precio base depende del tipo de vehículo. Los adicionales se suman. Solo el Administrador puede modificar estos precios. Si un servicio no tiene precio para un tipo, se usa su precio de venta.</p>
+        <div class="grilla-campos">
+            <div class="campo-abm"><label>Servicio o adicional</label>
+                <select @bind="idProductoPrecio"><option value="0">Seleccionar...</option>
+                    @foreach (var p in cotizables) { <option value="@p.Id_Productos">@p.Descripcion</option> }
+                </select></div>
+            <div class="campo-abm"><label>Tipo de vehículo</label>
+                <select @bind="idTipoPrecio"><option value="0">Seleccionar...</option>
+                    @foreach (var t in tipos) { <option value="@t.Id_Tipos_Vehiculos">@t.Descripcion</option> }
+                </select></div>
+            <div class="campo-abm"><label>Precio (Gs.)</label><input type="number" min="0" step="1" @bind="precio" /></div>
+        </div>
+        <div class="acciones-formulario"><button @onclick="GuardarPrecio">Guardar precio</button></div>
+        <div class="tabla-contenedor">
+            <table>
+                <thead><tr><th>Servicio</th><th>Tipo de vehículo</th><th>Precio</th><th>Actualizado</th><th>Acciones</th></tr></thead>
+                <tbody>
+                    @foreach (var p in precios)
+                    {
+                        <tr>
+                            <td>@p.Producto</td><td>@p.TipoVehiculo</td><td>@Gs(p.Precio)</td><td>@Fecha(p.FechaActualizacion)</td>
+                            <td class="acciones-tabla">
+                                <button type="button" class="boton-icono secundario" title="Editar" aria-label="Editar precio" @onclick="() => EditarPrecio(p)">✎</button>
+                                <button type="button" class="boton-icono peligro" title="Eliminar" aria-label="Eliminar precio" @onclick="() => EliminarPrecio(p)">✕</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="panel-abm separador-panel">
+        <h2>Tipos de vehículo</h2>
+        <div class="formulario-abm">
+            <input @bind="tipoEdicion.Descripcion" maxlength="100" placeholder="Ej.: Camión" />
+            <button @onclick="GuardarTipo">@(tipoEdicion.Id_Tipos_Vehiculos == 0 ? "Agregar tipo" : "Guardar tipo")</button>
+            @if (tipoEdicion.Id_Tipos_Vehiculos != 0) { <button class="secundario" @onclick="() => tipoEdicion = new()">Cancelar</button> }
+        </div>
+        <table>
+            <thead><tr><th>Descripción</th><th>Estado</th><th>Acciones</th></tr></thead>
+            <tbody>
+                @foreach (var t in tipos)
+                {
+                    <tr>
+                        <td>@t.Descripcion</td><td>@(t.Activo ? "Activo" : "Desactivado")</td>
+                        <td class="acciones-tabla">
+                            <button type="button" class="boton-icono secundario" title="Editar" aria-label="Editar tipo de vehículo" @onclick="() => tipoEdicion = new TipoVehiculoDto { Id_Tipos_Vehiculos = t.Id_Tipos_Vehiculos, Descripcion = t.Descripcion, Activo = t.Activo }">✎</button>
+                            <button type="button" class="boton-icono @(t.Activo ? "peligro" : "secundario")" title="@(t.Activo ? "Desactivar" : "Activar")" @onclick="() => CambiarEstadoTipo(t)">@(t.Activo ? "⏻" : "✓")</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="panel-abm separador-panel">
+        <h2>Adicionales</h2>
+        <p>Un adicional tiene su propio precio. Al calcular un lavado se suma al precio del tipo de vehículo.</p>
+        <div class="grilla-campos">
+            <div class="campo-abm"><label>Descripción</label><input maxlength="150" @bind="adicionalNombre" placeholder="Ej.: Cera" /></div>
+            <div class="campo-abm"><label>Precio (Gs.)</label><input type="number" min="0" step="1" @bind="adicionalPrecio" /></div>
+        </div>
+        <div class="acciones-formulario"><button @onclick="GuardarAdicional">@(idAdicional == 0 ? "Agregar adicional" : "Guardar adicional")</button>
+            @if (idAdicional != 0) { <button class="secundario" @onclick="LimpiarAdicional">Cancelar</button> }
+        </div>
+        <table>
+            <thead><tr><th>Adicional</th><th>Precio de venta</th><th>Estado</th><th></th></tr></thead>
+            <tbody>
+                @foreach (var a in adicionales)
+                {
+                    <tr>
+                        <td>@a.Descripcion</td><td>@Gs(a.PrecioDeVenta)</td><td>@(a.Activo ? "Activo" : "Desactivado")</td>
+                        <td><button type="button" class="boton-icono secundario" title="Editar" aria-label="Editar adicional" @onclick="() => EditarAdicional(a)">✎</button></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="panel-abm separador-panel">
+        <h2>Insumos por servicio</h2>
+        <p>Definí cuánto insumo consume cada servicio. Al descontarlo, el stock baja según esta configuración.</p>
+        <div class="grilla-campos">
+            <div class="campo-abm"><label>Servicio</label>
+                <select @bind="idServicioInsumo"><option value="0">Seleccionar...</option>
+                    @foreach (var p in servicios) { <option value="@p.Id_Productos">@p.Descripcion</option> }
+                </select></div>
+            <div class="campo-abm"><label>Insumo</label>
+                <select @bind="idInsumo"><option value="0">Seleccionar...</option>
+                    @foreach (var p in insumos) { <option value="@p.Id_Productos">@p.Descripcion (stock @Gs(p.StockActual))</option> }
+                </select></div>
+            <div class="campo-abm"><label>Cantidad</label><input type="number" min="1" step="1" @bind="cantidadInsumo" /></div>
+        </div>
+        <div class="acciones-formulario"><button @onclick="GuardarInsumo">Guardar configuración</button></div>
+        <table>
+            <thead><tr><th>Servicio</th><th>Insumo</th><th>Cantidad</th><th></th></tr></thead>
+            <tbody>
+                @foreach (var fila in configuracion)
+                {
+                    <tr>
+                        <td>@fila.Servicio</td><td>@fila.Insumo</td><td>@Gs(fila.Cantidad)</td>
+                        <td><button type="button" class="boton-icono peligro" title="Quitar" aria-label="Quitar insumo del servicio" @onclick="() => QuitarInsumo(fila)">✕</button></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="panel-abm separador-panel">
+        <h2>Precio del lavado y consumo</h2>
+        <p>El precio es el del tipo de vehículo más los adicionales marcados. Descontar insumos baja el stock configurado para el servicio, sin registrar un lavado.</p>
+        <div class="grilla-campos">
+            <div class="campo-abm"><label>Servicio</label>
+                <select @bind="idServicioPrecio"><option value="0">Seleccionar...</option>
+                    @foreach (var p in servicios) { <option value="@p.Id_Productos">@p.Descripcion</option> }
+                </select></div>
+            <div class="campo-abm"><label>Tipo de vehículo</label>
+                <select @bind="idTipoCalculo"><option value="0">Seleccionar...</option>
+                    @foreach (var t in tipos.Where(x => x.Activo)) { <option value="@t.Id_Tipos_Vehiculos">@t.Descripcion</option> }
+                </select></div>
+        </div>
+        <div class="lista-chequeo">
+            @foreach (var a in adicionales.Where(x => x.Activo))
+            {
+                var marcado = adicionalesElegidos.Contains(a.Id_Productos);
+                <label class="opcion-tipo-producto @(marcado ? "seleccionada" : "")">
+                    <input type="checkbox" checked="@marcado" @onchange="() => AlternarAdicional(a.Id_Productos)" />
+                    <span>@a.Descripcion</span>
+                </label>
+            }
+        </div>
+        @if (precioCalculado is not null)
+        {
+            <p class="tarjeta-dato"><small>Precio base @Gs(precioCalculado.PrecioBase) + adicionales @Gs(precioCalculado.TotalAdicionales)</small><strong>@Gs(precioCalculado.Total)</strong></p>
+        }
+        <div class="acciones-formulario">
+            <button @onclick="CalcularPrecio">Calcular precio</button>
+            <button class="secundario" @onclick="ConsumirInsumos">Descontar insumos del servicio</button>
+        </div>
+    </div>
+}

@@ -12,18 +12,21 @@ public class RepositorioUsuarios(AutoBrilloDbContext contexto) : IUserRepository
 {
     /// <summary>Obtiene todos los usuarios y sus roles para la grilla del ABM.</summary>
     public Task<List<Usuario>> ObtenerTodosAsync(CancellationToken cancellationToken = default) =>
-        contexto.Usuarios.Include(x => x.Roles).OrderBy(x => x.Nombre).ToListAsync(cancellationToken);
+        contexto.Usuarios.Include(x => x.Roles).Include(x => x.Persona).OrderBy(x => x.Nombre).ToListAsync(cancellationToken);
 
     /// <summary>Busca un usuario por su clave primaria junto con sus roles.</summary>
     public Task<Usuario?> ObtenerPorIdAsync(int id, CancellationToken cancellationToken = default) =>
-        contexto.Usuarios.Include(x => x.Roles).SingleOrDefaultAsync(x => x.Id_Usuarios == id, cancellationToken);
+        contexto.Usuarios.Include(x => x.Roles).Include(x => x.Persona).SingleOrDefaultAsync(x => x.Id_Usuarios == id, cancellationToken);
 
     /// <summary>
     /// Consulta un único usuario cuyo Nombre coincida exactamente con el valor indicado.
     /// SingleOrDefaultAsync devuelve null cuando la consulta no encuentra ninguno.
     /// </summary>
     public Task<Usuario?> ObtenerPorNombreAsync(string nombre, CancellationToken cancellationToken = default) =>
-        contexto.Usuarios.Include(x => x.Roles).SingleOrDefaultAsync(x => x.Nombre == nombre, cancellationToken);
+        contexto.Usuarios.Include(x => x.Roles).Include(x => x.Persona).SingleOrDefaultAsync(x => x.Nombre == nombre, cancellationToken);
+
+    public Task<bool> PersonaYaVinculadaAsync(int idPersona, int? excluirUsuarioId, CancellationToken cancellationToken = default) =>
+        contexto.Usuarios.AnyAsync(x => x.Id_Personas == idPersona && (excluirUsuarioId == null || x.Id_Usuarios != excluirUsuarioId), cancellationToken);
 
     /// <summary>
     /// Pregunta a la base si existe al menos un usuario con ese nombre.

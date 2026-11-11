@@ -24,7 +24,7 @@ public class ServicioGestion(HttpClient http)
 
     public async Task<string?> GuardarUsuarioAsync(UsuarioEdicionDto usuario)
     {
-        var datos = new { nombre = usuario.Nombre, password = usuario.Password, id_Roles = usuario.Id_Roles };
+        var datos = new { nombre = usuario.Nombre, password = usuario.Password, id_Roles = usuario.Id_Roles, id_Personas = usuario.Id_Personas };
         var respuesta = usuario.Id_Usuarios == 0
             ? await http.PostAsJsonAsync("api/usuarios", datos)
             : await http.PutAsJsonAsync($"api/usuarios/{usuario.Id_Usuarios}", datos);
@@ -105,7 +105,7 @@ public class RolDto
     public string Descripcion { get; set; } = string.Empty;
 }
 
-public record UsuarioDto(int Id_Usuarios, string Nombre, List<int> Id_Roles, List<string> Roles, bool Activo = true);
+public record UsuarioDto(int Id_Usuarios, string Nombre, List<int> Id_Roles, List<string> Roles, bool Activo = true, int? Id_Personas = null, string? Persona = null);
 public class PersonaDto
 {
     public int Id_Personas { get; set; }
@@ -166,4 +166,5 @@ public class UsuarioEdicionDto
     public string Nombre { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;
     public List<int> Id_Roles { get; set; } = [];
+    public int? Id_Personas { get; set; }
 }

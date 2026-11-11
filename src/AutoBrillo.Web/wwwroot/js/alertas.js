@@ -56,6 +56,13 @@ window.autobrilloAlerta = {
         confirmButtonText: "Entendido",
         customClass: { popup: "autobrillo-swal", confirmButton: "autobrillo-swal-principal" }
     }),
+    aviso: (titulo, mensaje) => Swal.fire({
+        title: titulo,
+        text: mensaje,
+        icon: "success",
+        confirmButtonText: "Entendido",
+        customClass: { popup: "autobrillo-swal", confirmButton: "autobrillo-swal-principal" }
+    }),
     error: (mensaje) => Swal.fire({
         title: "No se pudo eliminar",
         text: mensaje,

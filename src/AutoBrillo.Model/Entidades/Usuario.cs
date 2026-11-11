@@ -17,4 +17,9 @@ public class Usuario
 
     /// <summary>Roles asignados al usuario mediante la tabla intermedia usuarios_roles.</summary>
     public List<Rol> Roles { get; set; } = [];
+
+    /// <summary>Persona (cliente, funcionario o proveedor) a la que pertenece esta cuenta. Es opcional.</summary>
+    public int? Id_Personas { get; set; }
+
+    public Persona? Persona { get; set; }
 }

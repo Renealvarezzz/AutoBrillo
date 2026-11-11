@@ -12,7 +12,7 @@ namespace AutoBrillo.Api.Controllers;
 [ApiController]
 [Authorize(Roles = "Administrador")]
 [Route("api/usuarios")]
-public class UsuariosController(IUserRepository usuarios, IRolRepository roles, PasswordHasher passwordHasher) : ControllerBase
+public class UsuariosController(IUserRepository usuarios, IRolRepository roles, PasswordHasher passwordHasher, IPersonaRepository personas) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<List<UsuarioResponse>>> ObtenerTodos(CancellationToken cancellationToken) =>
@@ -25,14 +25,17 @@ public class UsuariosController(IUserRepository usuarios, IRolRepository roles, 
             return BadRequest(new { mensaje = "La contraseña es obligatoria al crear un usuario." });
         if (request.Password.Length < 6)
             return BadRequest(new { mensaje = "La contraseña debe tener al menos 6 caracteres." });
+        if (request.Id_Personas is 0) request.Id_Personas = null;
         var nombre = request.Nombre.Trim();
         if (await usuarios.ExisteNombreAsync(nombre, cancellationToken))
             return Conflict(new { mensaje = "El nombre de usuario ya está registrado." });
 
         var rolesSeleccionados = await ObtenerRolesValidosAsync(request.Id_Roles, cancellationToken);
         if (rolesSeleccionados is null) return BadRequest(new { mensaje = "Debe seleccionar al menos un rol válido." });
+        var errorPersona = await ValidarPersonaAsync(request.Id_Personas, null, cancellationToken);
+        if (errorPersona is not null) return errorPersona;
 
-        var usuario = new Usuario { Nombre = nombre, Password = passwordHasher.Hashear(request.Password), Roles = rolesSeleccionados };
+        var usuario = new Usuario { Nombre = nombre, Password = passwordHasher.Hashear(request.Password), Roles = rolesSeleccionados, Id_Personas = request.Id_Personas };
         await usuarios.AgregarAsync(usuario, cancellationToken);
         await usuarios.GuardarCambiosAsync(cancellationToken);
         usuario = await usuarios.ObtenerPorIdAsync(usuario.Id_Usuarios, cancellationToken) ?? usuario;
@@ -44,18 +47,22 @@ public class UsuariosController(IUserRepository usuarios, IRolRepository roles, 
     {
         var usuario = await usuarios.ObtenerPorIdAsync(id, cancellationToken);
         if (usuario is null) return NotFound(new { mensaje = "Usuario no encontrado." });
+        if (request.Id_Personas is 0) request.Id_Personas = null;
         var nombre = request.Nombre.Trim();
         if (await usuarios.ExisteNombreAsync(nombre, cancellationToken) && usuario.Nombre != nombre)
             return Conflict(new { mensaje = "El nombre de usuario ya está registrado." });
 
         var rolesSeleccionados = await ObtenerRolesValidosAsync(request.Id_Roles, cancellationToken);
         if (rolesSeleccionados is null) return BadRequest(new { mensaje = "Debe seleccionar al menos un rol válido." });
+        var errorPersona = await ValidarPersonaAsync(request.Id_Personas, id, cancellationToken);
+        if (errorPersona is not null) return errorPersona;
 
         if (!string.IsNullOrWhiteSpace(request.Password) && request.Password.Length < 6)
             return BadRequest(new { mensaje = "La contraseña debe tener al menos 6 caracteres." });
 
         usuario.Nombre = nombre;
         usuario.Roles = rolesSeleccionados;
+        usuario.Id_Personas = request.Id_Personas;
         if (!string.IsNullOrWhiteSpace(request.Password)) usuario.Password = passwordHasher.Hashear(request.Password);
         await usuarios.GuardarCambiosAsync(cancellationToken);
         usuario = await usuarios.ObtenerPorIdAsync(id, cancellationToken) ?? usuario;
@@ -88,6 +95,16 @@ public class UsuariosController(IUserRepository usuarios, IRolRepository roles, 
         return NoContent();
     }
 
+    private async Task<IActionResult?> ValidarPersonaAsync(int? idPersona, int? idUsuario, CancellationToken cancellationToken)
+    {
+        if (idPersona is null or 0) return null;
+        if (await personas.ObtenerPorIdAsync(idPersona.Value, cancellationToken) is null)
+            return BadRequest(new { mensaje = "La persona seleccionada no existe." });
+        if (await usuarios.PersonaYaVinculadaAsync(idPersona.Value, idUsuario, cancellationToken))
+            return Conflict(new { mensaje = "Esa persona ya tiene una cuenta de usuario." });
+        return null;
+    }
+
     private async Task<List<Rol>?> ObtenerRolesValidosAsync(IEnumerable<int> ids, CancellationToken cancellationToken)
     {
         var idsUnicos = ids.Distinct().ToList();
@@ -107,5 +124,7 @@ public class UsuariosController(IUserRepository usuarios, IRolRepository roles, 
         usuario.Nombre,
         usuario.Roles.Select(x => x.Id_Roles).ToList(),
         usuario.Roles.OrderBy(x => x.Descripcion).Select(x => x.Descripcion).ToList(),
-        usuario.Activo);
+        usuario.Activo,
+        usuario.Id_Personas,
+        usuario.Persona?.Nombre);
 }

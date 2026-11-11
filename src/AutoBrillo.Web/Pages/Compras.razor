@@ -1,0 +1,41 @@
+@page "/compras"
+@inherits PaginaOperativa
+
+<PageTitle>Compras | AutoBrillo</PageTitle>
+
+@if (cargando) { <p>Comprobando tu sesión...</p> }
+else
+{
+    <div class="panel-abm">
+        <p class="etiqueta">STOCK</p>
+        <h1>Compras</h1>
+        <p>Registrá el ingreso de productos o insumos de un proveedor. Cada línea suma stock. Solo el Administrador puede anular una compra, y al hacerlo se revierte el stock.</p>
+        <div class="grilla-campos">
+            <div class="campo-abm"><label>Proveedor</label>
+                <select @bind="idProveedor"><option value="0">Seleccionar...</option>
+                    @foreach (var p in proveedores) { <option value="@p.Id_Personas">@p.Nombre</option> }
+                </select></div>
+            <div class="campo-abm"><label>Comprobante</label><input maxlength="50" @bind="comprobante" placeholder="Ej.: Factura 001-001-0001234" /></div>
+        </div>
+        <EditorLineas Productos="productos" Lineas="lineas" UsarPrecioCosto="true" />
+        <div class="acciones-formulario"><button @onclick="Registrar">Registrar compra</button></div>
+
+        <h2>Historial</h2>
+        <div class="tabla-contenedor">
+            <table>
+                <thead><tr><th>#</th><th>Fecha</th><th>Proveedor</th><th>Comprobante</th><th>Detalle</th><th>Total</th><th>Estado</th><th></th></tr></thead>
+                <tbody>
+                    @foreach (var c in compras)
+                    {
+                        <tr>
+                            <td>@c.Id_Compras</td><td>@Fecha(c.Fecha)</td><td>@c.Proveedor</td><td>@c.Comprobante</td>
+                            <td>@string.Join(", ", c.Detalles.Select(d => $"{Gs(d.Cantidad)} x {d.Producto}"))</td><td>@Gs(c.Total)</td>
+                            <td><span class="estado-chip @(c.Estado == "Anulada" ? "alerta" : "ok")" title="@c.MotivoAnulacion">@c.Estado</span></td>
+                            <td>@if (c.Estado != "Anulada") { <button class="peligro" @onclick="() => Anular(c)">Anular</button> }</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

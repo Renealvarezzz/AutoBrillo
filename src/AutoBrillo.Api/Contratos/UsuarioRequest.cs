@@ -14,4 +14,7 @@ public class UsuarioRequest
     /// <summary>Uno o varios roles obligatorios para el usuario.</summary>
     [MinLength(1, ErrorMessage = "Debe seleccionar al menos un rol.")]
     public List<int> Id_Roles { get; set; } = [];
+
+    /// <summary>Persona vinculada a la cuenta. Vacío cuando la cuenta no representa a una persona.</summary>
+    public int? Id_Personas { get; set; }
 }
