@@ -12,6 +12,14 @@ public static class ReglasNegocio
     public const string Entrada = "Entrada";
     public const string Salida = "Salida";
 
+    public static decimal CalcularComision(decimal importeVenta, decimal porcentaje, int participantes)
+    {
+        ValidarImporte(importeVenta, "El importe de la venta");
+        if (porcentaje < 0 || porcentaje > 100) throw new ReglaNegocioException("El porcentaje debe estar entre 0 y 100.");
+        if (participantes <= 0) throw new ReglaNegocioException("El lavado debe tener al menos un funcionario participante.");
+        return decimal.Round(importeVenta * porcentaje / 100m / participantes, 2, MidpointRounding.AwayFromZero);
+    }
+
     /// <summary>RN-008: el precio del lavado es el del tipo de vehículo más los adicionales elegidos.</summary>
     public static decimal CalcularPrecioLavado(decimal precioBaseTipoVehiculo, IEnumerable<decimal> preciosAdicionales)
     {

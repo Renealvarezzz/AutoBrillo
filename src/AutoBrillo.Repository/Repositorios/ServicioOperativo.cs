@@ -60,7 +60,7 @@ public class ServicioOperativo(AutoBrilloDbContext contexto)
         return texto.Length > 250 ? texto[..250] : texto;
     }
 
-    public static void MarcarAnulada(OperacionAnulable operacion, string estado, string motivo, int idUsuario)
+    public static void MarcarAnulada(IOperacionAnulable operacion, string estado, string motivo, int idUsuario)
     {
         if (operacion.Estado == estado) throw new ReglaNegocioException("La operación ya estaba anulada.");
         operacion.Estado = estado;

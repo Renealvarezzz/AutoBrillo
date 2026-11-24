@@ -1,0 +1,14 @@
+@page "/lavados"
+@inherits PaginaSprintTres
+<PageTitle>Lavados | AutoBrillo</PageTitle>
+@if (cargando) { <p>Comprobando sesión...</p> } else {
+<div class="panel-abm"><p class="etiqueta">OPERACIONES</p><h1>Lavados</h1>
+<div class="grilla-campos">
+<div class="campo-abm"><label>Vehículo</label><select @bind="vehiculo"><option value="0">Seleccionar...</option>@foreach(var v in vehiculos){<option value="@v.Id_Vehiculos">@v.Patente · @v.Cliente</option>}</select></div>
+<div class="campo-abm"><label>Sector</label><select @bind="sector">@for(var i=1;i<=10;i++){<option value="@i">@i</option>}</select></div>
+<div class="campo-abm"><label>Horario</label><input type="datetime-local" @bind="fecha" /></div>
+<div class="campo-abm"><label>Servicio</label><select @bind="servicio"><option value="0">Seleccionar...</option>@foreach(var p in productos.Where(x=>x.Activo&&x.Tipos.Contains("Servicio"))){<option value="@p.Id_Productos">@p.Descripcion</option>}</select></div>
+<div class="campo-abm"><label>Adicional</label><select @bind="adicional"><option value="0">Ninguno</option>@foreach(var p in productos.Where(x=>x.Activo&&x.Tipos.Contains("Adicional"))){<option value="@p.Id_Productos">@p.Descripcion</option>}</select></div>
+<div class="campo-abm"><label>Funcionario(s)</label><select multiple @bind="funcionariosSeleccionados">@foreach(var p in funcionarios){<option value="@p.Id_Personas">@p.Nombre</option>}</select></div></div>
+<div class="acciones-formulario"><button @onclick="Registrar">@(idEdicion == 0 ? "Registrar lavado" : "Guardar cambios")</button>@if(idEdicion != 0){<button @onclick="Limpiar">Cancelar edición</button>}</div>
+<h2>Lavados registrados</h2><div class="tabla-contenedor"><table><thead><tr><th>Hora</th><th>Vehículo / cliente</th><th>Sector</th><th>Servicios</th><th>Funcionarios</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>@foreach(var l in lavados){<tr><td>@Fecha(l.Fecha)</td><td>@l.Vehiculo · @l.Cliente</td><td>@l.Sector</td><td>@string.Join(", ",l.Servicios.Select(x=>x.Producto))</td><td>@string.Join(", ",l.Participantes.Select(x=>x.Nombre))</td><td>@l.Estado</td><td>@if(l.Estado=="Registrado"){<button @onclick="()=>Finalizar(l)">Terminar</button><button @onclick="()=>Editar(l)">Editar</button>@if(esAdministrador){<button class="peligro" @onclick="()=>Cancelar(l)">Cancelar</button>}}</td></tr>}</tbody></table></div></div> }

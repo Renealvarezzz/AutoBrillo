@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace AutoBrillo.Api.Controllers;
 
 [ApiController]
-[Authorize(Roles = "Administrador")]
+[Authorize(Roles = "Administrador,Supervisor,Caja")]
 [Route("api/personas")]
 public class PersonasController(IPersonaRepository personas, ITipoPersonaRepository tipos) : ControllerBase
 {
@@ -16,6 +16,7 @@ public class PersonasController(IPersonaRepository personas, ITipoPersonaReposit
         Ok((await personas.ObtenerTodosAsync(cancellationToken)).Select(Convertir).ToList());
 
     [HttpPost]
+    [Authorize(Roles = "Administrador")]
     public async Task<IActionResult> Crear(PersonaRequest request, CancellationToken cancellationToken)
     {
         var validacion = await ValidarAsync(request, null, cancellationToken);
@@ -28,6 +29,7 @@ public class PersonasController(IPersonaRepository personas, ITipoPersonaReposit
     }
 
     [HttpPut("{id:int}")]
+    [Authorize(Roles = "Administrador")]
     public async Task<IActionResult> Editar(int id, PersonaRequest request, CancellationToken cancellationToken)
     {
         var persona = await personas.ObtenerPorIdAsync(id, cancellationToken);
@@ -44,6 +46,7 @@ public class PersonasController(IPersonaRepository personas, ITipoPersonaReposit
     }
 
     [HttpPatch("{id:int}/estado")]
+    [Authorize(Roles = "Administrador")]
     public async Task<IActionResult> CambiarEstado(int id, EstadoUsuarioRequest request, CancellationToken cancellationToken)
     {
         var persona = await personas.ObtenerPorIdAsync(id, cancellationToken);
@@ -54,6 +57,7 @@ public class PersonasController(IPersonaRepository personas, ITipoPersonaReposit
     }
 
     [HttpDelete("{id:int}")]
+    [Authorize(Roles = "Administrador")]
     public async Task<IActionResult> Eliminar(int id, CancellationToken cancellationToken)
     {
         var persona = await personas.ObtenerPorIdAsync(id, cancellationToken);

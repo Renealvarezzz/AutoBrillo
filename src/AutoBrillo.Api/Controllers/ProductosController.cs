@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace AutoBrillo.Api.Controllers;
 
 [ApiController]
-[Authorize(Roles = "Administrador")]
+[Authorize(Roles = "Administrador,Supervisor,Caja")]
 [Route("api/productos")]
 public class ProductosController(IProductoRepository productos, ITipoProductoRepository tipos) : ControllerBase
 {
@@ -16,6 +16,7 @@ public class ProductosController(IProductoRepository productos, ITipoProductoRep
     public async Task<ActionResult<List<ProductoResponse>>> ObtenerTodos(CancellationToken cancellationToken) => Ok((await productos.ObtenerTodosAsync(cancellationToken)).Select(Convertir).ToList());
 
     [HttpPost]
+    [Authorize(Roles = "Administrador")]
     public async Task<IActionResult> Crear(ProductoRequest request, CancellationToken cancellationToken)
     {
         var validacion = await ValidarAsync(request, null, cancellationToken);
@@ -28,6 +29,7 @@ public class ProductosController(IProductoRepository productos, ITipoProductoRep
     }
 
     [HttpPut("{id:int}")]
+    [Authorize(Roles = "Administrador")]
     public async Task<IActionResult> Editar(int id, ProductoRequest request, CancellationToken cancellationToken)
     {
         var producto = await productos.ObtenerPorIdAsync(id, cancellationToken);
@@ -45,6 +47,7 @@ public class ProductosController(IProductoRepository productos, ITipoProductoRep
     }
 
     [HttpPatch("{id:int}/estado")]
+    [Authorize(Roles = "Administrador")]
     public async Task<IActionResult> CambiarEstado(int id, EstadoUsuarioRequest request, CancellationToken cancellationToken)
     {
         var producto = await productos.ObtenerPorIdAsync(id, cancellationToken);
@@ -55,6 +58,7 @@ public class ProductosController(IProductoRepository productos, ITipoProductoRep
     }
 
     [HttpDelete("{id:int}")]
+    [Authorize(Roles = "Administrador")]
     public async Task<IActionResult> Eliminar(int id, CancellationToken cancellationToken)
     {
         var producto = await productos.ObtenerPorIdAsync(id, cancellationToken);

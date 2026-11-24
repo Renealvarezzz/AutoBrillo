@@ -66,7 +66,7 @@ public class AuthController(IUserRepository usuarios, IRolRepository roles, Pass
             return Unauthorized(new { mensaje = "Nombre o contraseña incorrectos." });
 
         // El token permite acceder posteriormente a endpoints marcados con [Authorize].
-        return Ok(new { token = CrearToken(usuario), usuario = usuario.Nombre, esAdministrador = usuario.Roles.Any(rol => rol.Descripcion == "Administrador") });
+        return Ok(new { token = CrearToken(usuario), usuario = usuario.Nombre, roles = usuario.Roles.Select(x => x.Descripcion), esAdministrador = usuario.Roles.Any(rol => rol.Descripcion == "Administrador") });
     }
 
     /// <summary>
@@ -79,7 +79,8 @@ public class AuthController(IUserRepository usuarios, IRolRepository roles, Pass
     {
         id = User.FindFirstValue(ClaimTypes.NameIdentifier),
         usuario = User.Identity?.Name,
-        esAdministrador = User.IsInRole("Administrador")
+        esAdministrador = User.IsInRole("Administrador"),
+        roles = User.FindAll(ClaimTypes.Role).Select(x => x.Value)
     });
 
     /// <summary>

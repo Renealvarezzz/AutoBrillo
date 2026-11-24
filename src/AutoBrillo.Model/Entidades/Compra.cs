@@ -1,19 +1,24 @@
 namespace AutoBrillo.Model.Entidades;
 
 /// <summary>Datos comunes de una operación que el Administrador puede anular.</summary>
-public abstract class OperacionAnulable
+public interface IOperacionAnulable
 {
+    string Estado { get; set; }
+    int Id_Usuarios { get; set; }
+    DateTime? FechaAnulacion { get; set; }
+    int? Id_Usuarios_Anulacion { get; set; }
+    string? MotivoAnulacion { get; set; }
+}
+
+/// <summary>Compra a un proveedor. Cada línea suma stock (PBI-006).</summary>
+public class Compra : IOperacionAnulable
+{
+    public int Id_Compras { get; set; }
     public string Estado { get; set; } = string.Empty;
     public int Id_Usuarios { get; set; }
     public DateTime? FechaAnulacion { get; set; }
     public int? Id_Usuarios_Anulacion { get; set; }
     public string? MotivoAnulacion { get; set; }
-}
-
-/// <summary>Compra a un proveedor. Cada línea suma stock (PBI-006).</summary>
-public class Compra : OperacionAnulable
-{
-    public int Id_Compras { get; set; }
     public int Id_Personas { get; set; }
     public Persona? Proveedor { get; set; }
     public DateTime Fecha { get; set; }

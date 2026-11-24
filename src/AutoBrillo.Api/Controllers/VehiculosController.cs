@@ -8,7 +8,7 @@ namespace AutoBrillo.Api.Controllers;
 
 /// <summary>PBI-004: vehículos de los clientes y tipos de vehículo.</summary>
 [ApiController]
-[Authorize(Roles = "Administrador")]
+[Authorize(Roles = "Administrador,Supervisor,Caja")]
 [Route("api")]
 public class VehiculosController(IRepositorioVehiculos vehiculos, IRepositorioCatalogos catalogos) : ControllerBase
 {
@@ -17,6 +17,7 @@ public class VehiculosController(IRepositorioVehiculos vehiculos, IRepositorioCa
         Ok((await vehiculos.ObtenerAsync(idPersona, ct)).Select(Convertir));
 
     [HttpPost("vehiculos")]
+    [Authorize(Roles = "Administrador")]
     public async Task<IActionResult> Crear(VehiculoRequest request, CancellationToken ct)
     {
         var guardado = await vehiculos.GuardarAsync(Desde(0, request), ct);
@@ -24,6 +25,7 @@ public class VehiculosController(IRepositorioVehiculos vehiculos, IRepositorioCa
     }
 
     [HttpPut("vehiculos/{id:int}")]
+    [Authorize(Roles = "Administrador")]
     public async Task<IActionResult> Editar(int id, VehiculoRequest request, CancellationToken ct)
     {
         var guardado = await vehiculos.GuardarAsync(Desde(id, request), ct);
@@ -31,6 +33,7 @@ public class VehiculosController(IRepositorioVehiculos vehiculos, IRepositorioCa
     }
 
     [HttpPatch("vehiculos/{id:int}/estado")]
+    [Authorize(Roles = "Administrador")]
     public async Task<IActionResult> CambiarEstado(int id, EstadoVehiculoRequest request, CancellationToken ct)
     {
         var guardado = await vehiculos.CambiarEstadoAsync(id, request.Activo, ct);
@@ -41,10 +44,12 @@ public class VehiculosController(IRepositorioVehiculos vehiculos, IRepositorioCa
     public async Task<IActionResult> Tipos(CancellationToken ct) => Ok(await catalogos.ObtenerTiposVehiculosAsync(ct));
 
     [HttpPost("tipos-vehiculos")]
+    [Authorize(Roles = "Administrador")]
     public async Task<IActionResult> CrearTipo(CatalogoRequest request, CancellationToken ct) =>
         Ok(await catalogos.GuardarTipoVehiculoAsync(0, request.Descripcion, request.Activo, ct));
 
     [HttpPut("tipos-vehiculos/{id:int}")]
+    [Authorize(Roles = "Administrador")]
     public async Task<IActionResult> EditarTipo(int id, CatalogoRequest request, CancellationToken ct) =>
         Ok(await catalogos.GuardarTipoVehiculoAsync(id, request.Descripcion, request.Activo, ct));
 

@@ -37,6 +37,7 @@ builder.Services.AddScoped<IRepositorioCompras, RepositorioCompras>();
 builder.Services.AddScoped<IRepositorioCatalogos, RepositorioCatalogos>();
 builder.Services.AddScoped<IRepositorioVehiculos, RepositorioVehiculos>();
 builder.Services.AddScoped<IRepositorioServicios, RepositorioServicios>();
+builder.Services.AddScoped<IRepositorioSprintTres, RepositorioSprintTres>();
 builder.Services.AddSingleton<PasswordHasher>();
 builder.Services.AddControllers(opciones => opciones.Filters.Add<AutoBrillo.Api.Seguridad.FiltroReglasNegocio>());
 

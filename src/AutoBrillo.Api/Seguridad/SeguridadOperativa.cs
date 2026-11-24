@@ -10,6 +10,8 @@ public static class RolesAutoBrillo
 {
     public const string Administrador = "Administrador";
     public const string AdminStock = "Administrador,Stock";
+    public const string AdminCaja = "Administrador,Caja";
+    public const string Operacion = "Administrador,Supervisor,Caja";
 }
 
 public static class ExtensionesUsuario
