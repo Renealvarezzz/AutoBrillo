@@ -5,13 +5,21 @@ using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace AutoBrillo.Api.Seguridad;
 
-/// <summary>Roles ya cargados en la tabla roles.</summary>
+/// <summary>
+/// Roles de la operación del lavadero.
+/// Administrador: todo, incluidas anulaciones, comisiones y el ABM.
+/// Supervisor y Caja: lavados (alta, edición y cierre), ventas y cobros. No anulan.
+/// Stock: compras, inventario y la lectura de personas y productos que esas pantallas necesitan.
+/// </summary>
 public static class RolesAutoBrillo
 {
     public const string Administrador = "Administrador";
+    public const string Supervisor = "Supervisor";
+    public const string Caja = "Caja";
+    public const string Stock = "Stock";
     public const string AdminStock = "Administrador,Stock";
-    public const string AdminCaja = "Administrador,Caja";
     public const string Operacion = "Administrador,Supervisor,Caja";
+    public const string LecturaCatalogo = "Administrador,Supervisor,Caja,Stock";
 }
 
 public static class ExtensionesUsuario

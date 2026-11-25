@@ -1,4 +1,5 @@
 using AutoBrillo.Api.Contratos;
+using AutoBrillo.Api.Seguridad;
 using AutoBrillo.Model.Entidades;
 using AutoBrillo.Repository.Repositorios;
 using Microsoft.AspNetCore.Authorization;
@@ -7,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace AutoBrillo.Api.Controllers;
 
 [ApiController]
-[Authorize(Roles = "Administrador,Supervisor,Caja")]
+[Authorize(Roles = RolesAutoBrillo.LecturaCatalogo)]
 [Route("api/personas")]
 public class PersonasController(IPersonaRepository personas, ITipoPersonaRepository tipos) : ControllerBase
 {

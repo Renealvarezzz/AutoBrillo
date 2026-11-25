@@ -1,4 +1,5 @@
 using AutoBrillo.Api.Contratos;
+using AutoBrillo.Api.Seguridad;
 using AutoBrillo.Model.Entidades;
 using AutoBrillo.Repository.Repositorios;
 using AutoBrillo.Api.Validaciones;
@@ -8,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace AutoBrillo.Api.Controllers;
 
 [ApiController]
-[Authorize(Roles = "Administrador,Supervisor,Caja")]
+[Authorize(Roles = RolesAutoBrillo.LecturaCatalogo)]
 [Route("api/productos")]
 public class ProductosController(IProductoRepository productos, ITipoProductoRepository tipos) : ControllerBase
 {
@@ -21,9 +22,8 @@ public class ProductosController(IProductoRepository productos, ITipoProductoRep
     {
         var validacion = await ValidarAsync(request, null, cancellationToken);
         if (validacion.Error is not null) return validacion.Error;
-        var producto = new Producto { Descripcion = request.Descripcion.Trim(), PrecioDeCosto = request.PrecioDeCosto, PrecioDeVenta = request.PrecioDeVenta, StockActual = request.StockActual, Tipos = validacion.Tipos! };
-        await productos.AgregarAsync(producto, cancellationToken);
-        await productos.GuardarCambiosAsync(cancellationToken);
+        var producto = new Producto { Descripcion = request.Descripcion.Trim(), PrecioDeCosto = request.PrecioDeCosto, PrecioDeVenta = request.PrecioDeVenta, StockActual = 0, Tipos = validacion.Tipos! };
+        producto = await productos.CrearConStockInicialAsync(producto, request.StockActual, User.IdUsuario(), cancellationToken);
         producto = await productos.ObtenerPorIdAsync(producto.Id_Productos, cancellationToken) ?? producto;
         return CreatedAtAction(nameof(ObtenerTodos), new { producto.Id_Productos }, Convertir(producto));
     }
@@ -39,7 +39,6 @@ public class ProductosController(IProductoRepository productos, ITipoProductoRep
         producto.Descripcion = request.Descripcion.Trim();
         producto.PrecioDeCosto = request.PrecioDeCosto;
         producto.PrecioDeVenta = request.PrecioDeVenta;
-        producto.StockActual = request.StockActual;
         producto.Tipos = validacion.Tipos!;
         await productos.GuardarCambiosAsync(cancellationToken);
         producto = await productos.ObtenerPorIdAsync(id, cancellationToken) ?? producto;

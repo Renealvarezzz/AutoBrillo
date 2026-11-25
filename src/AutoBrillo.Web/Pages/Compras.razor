@@ -4,6 +4,7 @@
 <PageTitle>Compras | AutoBrillo</PageTitle>
 
 @if (cargando) { <p>Comprobando tu sesión...</p> }
+else if (!string.IsNullOrWhiteSpace(mensajeAcceso)) { <p role="alert">@mensajeAcceso</p> }
 else
 {
     <div class="panel-abm">
@@ -31,7 +32,7 @@ else
                             <td>@c.Id_Compras</td><td>@Fecha(c.Fecha)</td><td>@c.Proveedor</td><td>@c.Comprobante</td>
                             <td>@string.Join(", ", c.Detalles.Select(d => $"{Gs(d.Cantidad)} x {d.Producto}"))</td><td>@Gs(c.Total)</td>
                             <td><span class="estado-chip @(c.Estado == "Anulada" ? "alerta" : "ok")" title="@c.MotivoAnulacion">@c.Estado</span></td>
-                            <td>@if (c.Estado != "Anulada") { <button class="peligro" @onclick="() => Anular(c)">Anular</button> }</td>
+                            <td>@if (esAdministrador && c.Estado != "Anulada") { <button class="peligro" @onclick="() => Anular(c)">Anular</button> }</td>
                         </tr>
                     }
                 </tbody>

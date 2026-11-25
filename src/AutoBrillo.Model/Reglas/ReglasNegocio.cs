@@ -20,6 +20,34 @@ public static class ReglasNegocio
         return decimal.Round(importeVenta * porcentaje / 100m / participantes, 2, MidpointRounding.AwayFromZero);
     }
 
+    /// <summary>
+    /// Base de la comisión: solo subtotales de servicios y adicionales.
+    /// Los productos e insumos de la misma venta no se suman.
+    /// </summary>
+    public static decimal SumarBaseComision(IEnumerable<decimal> subtotalesServiciosYAdicionales)
+    {
+        var total = 0m;
+        foreach (var subtotal in subtotalesServiciosYAdicionales)
+        {
+            ValidarImporte(subtotal, "El subtotal de un servicio");
+            total += subtotal;
+        }
+
+        return total;
+    }
+
+    /// <summary>Un lavado se puede asociar a una venta si está registrado o terminado y no tiene otra venta activa.</summary>
+    public static bool LavadoDisponibleParaVenta(string? estado, bool tieneVentaActiva) =>
+        estado is "Registrado" or "Terminado" && !tieneVentaActiva;
+
+    /// <summary>Quita espacios y pasa la patente a mayúsculas antes de comprobar si ya existe.</summary>
+    public static string NormalizarPatente(string? patente)
+    {
+        if (string.IsNullOrWhiteSpace(patente)) return string.Empty;
+        var compacta = new string(patente.Where(c => !char.IsWhiteSpace(c)).ToArray());
+        return compacta.ToUpperInvariant();
+    }
+
     /// <summary>RN-008: el precio del lavado es el del tipo de vehículo más los adicionales elegidos.</summary>
     public static decimal CalcularPrecioLavado(decimal precioBaseTipoVehiculo, IEnumerable<decimal> preciosAdicionales)
     {

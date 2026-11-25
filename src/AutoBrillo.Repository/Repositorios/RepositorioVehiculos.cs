@@ -22,7 +22,7 @@ public class RepositorioVehiculos(AutoBrilloDbContext contexto, ServicioOperativ
 
     public async Task<Vehiculo> GuardarAsync(Vehiculo vehiculo, CancellationToken ct = default)
     {
-        vehiculo.Patente = vehiculo.Patente?.Trim().ToUpperInvariant() ?? string.Empty;
+        vehiculo.Patente = ReglasNegocio.NormalizarPatente(vehiculo.Patente);
         if (vehiculo.Patente.Length is 0 or > 20) throw new ReglaNegocioException("Ingresá la patente o chapa del vehículo (hasta 20 caracteres).");
         vehiculo.Marca = Limpiar(vehiculo.Marca, 80);
         vehiculo.Modelo = Limpiar(vehiculo.Modelo, 80);

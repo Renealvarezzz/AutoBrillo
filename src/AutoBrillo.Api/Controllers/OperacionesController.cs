@@ -20,7 +20,7 @@ public class OperacionesController(IRepositorioSprintTres repo) : ControllerBase
     }));
 
     [HttpPost("lavados")]
-    [Authorize(Roles = RolesAutoBrillo.AdminCaja)]
+    [Authorize(Roles = RolesAutoBrillo.Operacion)]
     public async Task<IActionResult> RegistrarLavado(LavadoRequest r, CancellationToken ct)
     {
         var x = new Lavado { Id_Vehiculos = r.Id_Vehiculos, Sector = r.Sector, Fecha = r.Fecha,
@@ -30,7 +30,7 @@ public class OperacionesController(IRepositorioSprintTres repo) : ControllerBase
     }
 
     [HttpPut("lavados/{id:int}")]
-    [Authorize(Roles = "Administrador,Supervisor")]
+    [Authorize(Roles = RolesAutoBrillo.Operacion)]
     public async Task<IActionResult> EditarLavado(int id, LavadoRequest r, CancellationToken ct)
     {
         var x = new Lavado { Id_Vehiculos = r.Id_Vehiculos, Sector = r.Sector, Fecha = r.Fecha,
@@ -40,7 +40,7 @@ public class OperacionesController(IRepositorioSprintTres repo) : ControllerBase
     }
 
     [HttpPost("lavados/{id:int}/finalizar")]
-    [Authorize(Roles = "Administrador,Supervisor,Caja")]
+    [Authorize(Roles = RolesAutoBrillo.Operacion)]
     public async Task<IActionResult> FinalizarLavado(int id, CancellationToken ct) { await repo.FinalizarLavadoAsync(id, User.IdUsuario(), ct); return NoContent(); }
     [HttpPost("lavados/{id:int}/cancelar"), Authorize(Roles = RolesAutoBrillo.Administrador)]
     public async Task<IActionResult> CancelarLavado(int id, AnulacionRequest r, CancellationToken ct) { await repo.AnularLavadoAsync(id, r.Motivo ?? "", User.IdUsuario(), ct); return NoContent(); }
@@ -54,7 +54,7 @@ public class OperacionesController(IRepositorioSprintTres repo) : ControllerBase
         var x = new Venta { Id_Lavados = r.Id_Lavados, Condicion = r.Condicion, Detalles = (r.Detalles ?? []).Select(d => new VentaDetalle { Id_Productos = d.Id_Productos, Cantidad = d.Cantidad }).ToList() };
         await repo.RegistrarVentaAsync(x, User.IdUsuario(), ct); return Ok(new { x.Id_Ventas, x.Total });
     }
-    [HttpPost("ventas/{id:int}/cobros"), Authorize(Roles = RolesAutoBrillo.AdminCaja)]
+    [HttpPost("ventas/{id:int}/cobros"), Authorize(Roles = RolesAutoBrillo.Operacion)]
     public async Task<IActionResult> Cobrar(int id, CobroRequest r, CancellationToken ct) { await repo.RegistrarCobroAsync(id, r.MedioPago, r.Importe, User.IdUsuario(), ct); return NoContent(); }
     [HttpPost("ventas/{id:int}/anular"), Authorize(Roles = RolesAutoBrillo.Administrador)]
     public async Task<IActionResult> AnularVenta(int id, AnulacionRequest r, CancellationToken ct) { await repo.AnularVentaAsync(id, r.Motivo ?? "", User.IdUsuario(), ct); return NoContent(); }

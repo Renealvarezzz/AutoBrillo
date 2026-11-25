@@ -4,6 +4,8 @@ namespace AutoBrillo.Web.Pages;
 
 public partial class Inventario
 {
+    protected override string[] RolesPermitidos => [RolesPantalla.Administrador, RolesPantalla.Stock];
+
     private List<ProductoDto> productos = [];
     private List<MovimientoStockDto> movimientos = [];
     private int filtroProducto;

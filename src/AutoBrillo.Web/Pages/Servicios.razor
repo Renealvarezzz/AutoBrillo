@@ -4,6 +4,7 @@
 <PageTitle>Servicios | AutoBrillo</PageTitle>
 
 @if (cargando) { <p>Comprobando tu sesión...</p> }
+else if (!string.IsNullOrWhiteSpace(mensajeAcceso)) { <p role="alert">@mensajeAcceso</p> }
 else
 {
     <div class="panel-abm">

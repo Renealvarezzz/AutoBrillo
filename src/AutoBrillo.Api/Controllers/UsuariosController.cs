@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using AutoBrillo.Api.Contratos;
 using AutoBrillo.Model.Entidades;
+using AutoBrillo.Model.Reglas;
 using AutoBrillo.Repository.Repositorios;
 using AutoBrillo.Repository.Seguridad;
 using Microsoft.AspNetCore.Authorization;
@@ -60,6 +61,13 @@ public class UsuariosController(IUserRepository usuarios, IRolRepository roles, 
         if (!string.IsNullOrWhiteSpace(request.Password) && request.Password.Length < 6)
             return BadRequest(new { mensaje = "La contraseña debe tener al menos 6 caracteres." });
 
+        var sinAdministrador = await RechazarSiDejaSinAdministradorAsync(
+            usuario.Id_Usuarios,
+            usuario.Activo,
+            rolesSeleccionados.Any(ReglasUsuarios.EsRolAdministrador),
+            cancellationToken);
+        if (sinAdministrador is not null) return sinAdministrador;
+
         usuario.Nombre = nombre;
         usuario.Roles = rolesSeleccionados;
         usuario.Id_Personas = request.Id_Personas;
@@ -79,6 +87,9 @@ public class UsuariosController(IUserRepository usuarios, IRolRepository roles, 
         if (!request.Activo && idAdministradorActual == id.ToString())
             return BadRequest(new { mensaje = "No podés desactivar tu propio usuario." });
 
+        var sinAdministrador = await RechazarSiDejaSinAdministradorAsync(id, request.Activo, ReglasUsuarios.TieneRolAdministrador(usuario), cancellationToken);
+        if (sinAdministrador is not null) return sinAdministrador;
+
         usuario.Activo = request.Activo;
         await usuarios.GuardarCambiosAsync(cancellationToken);
         usuario = await usuarios.ObtenerPorIdAsync(id, cancellationToken) ?? usuario;
@@ -90,9 +101,21 @@ public class UsuariosController(IUserRepository usuarios, IRolRepository roles, 
     {
         var usuario = await usuarios.ObtenerPorIdAsync(id, cancellationToken);
         if (usuario is null) return NotFound(new { mensaje = "Usuario no encontrado." });
+        if (User.FindFirstValue(ClaimTypes.NameIdentifier) == id.ToString())
+            return BadRequest(new { mensaje = "No podés eliminar tu propio usuario. Si ya no debe entrar, desactivalo." });
+        var sinAdministrador = await RechazarSiDejaSinAdministradorAsync(id, false, false, cancellationToken);
+        if (sinAdministrador is not null) return sinAdministrador;
         usuarios.Eliminar(usuario);
         await usuarios.GuardarCambiosAsync(cancellationToken);
         return NoContent();
+    }
+
+    private async Task<IActionResult?> RechazarSiDejaSinAdministradorAsync(int idUsuario, bool seguiraActivo, bool seguiraSiendoAdministrador, CancellationToken cancellationToken)
+    {
+        var todos = await usuarios.ObtenerTodosAsync(cancellationToken);
+        if (!ReglasUsuarios.QuedariaSinAdministradorActivo(todos, idUsuario, seguiraActivo, seguiraSiendoAdministrador))
+            return null;
+        return BadRequest(new { mensaje = "Tiene que quedar al menos un administrador activo." });
     }
 
     private async Task<IActionResult?> ValidarPersonaAsync(int? idPersona, int? idUsuario, CancellationToken cancellationToken)

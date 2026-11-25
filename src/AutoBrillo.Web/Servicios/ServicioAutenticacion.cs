@@ -1,8 +1,18 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text.Json;
 using Microsoft.JSInterop;
 
 namespace AutoBrillo.Web.Servicios;
+
+/// <summary>Nombres de rol que la web usa para mostrar u ocultar pantallas.</summary>
+public static class RolesPantalla
+{
+    public const string Administrador = "Administrador";
+    public const string Supervisor = "Supervisor";
+    public const string Caja = "Caja";
+    public const string Stock = "Stock";
+}
 
 /// <summary>
 /// Centraliza la comunicación de la web con los endpoints de autenticación de la API.
@@ -10,14 +20,15 @@ namespace AutoBrillo.Web.Servicios;
 /// </summary>
 public class ServicioAutenticacion(HttpClient http, IJSRuntime js)
 {
-    // Nombres con los que el navegador guarda los datos de sesión en localStorage.
     private const string ClaveToken = "autobrillo.token";
     private const string ClaveUsuario = "autobrillo.usuario";
     private const string ClaveEsAdministrador = "autobrillo.esAdministrador";
+    private const string ClaveRoles = "autobrillo.roles";
+    private const string ClaveId = "autobrillo.idUsuario";
 
     /// <summary>
     /// Envía Nombre y Password a POST /api/auth/login.
-    /// Si la API acepta las credenciales, guarda el token y el nombre para usar la sesión después.
+    /// Si la API acepta las credenciales, guarda el token, el nombre y los roles.
     /// </summary>
     /// <returns>Null cuando el acceso fue correcto; un mensaje cuando falló.</returns>
     public async Task<string?> LoginAsync(string nombre, string password)
@@ -29,10 +40,7 @@ public class ServicioAutenticacion(HttpClient http, IJSRuntime js)
         var datos = await respuesta.Content.ReadFromJsonAsync<LoginResponse>();
         if (datos is null) return "No fue posible leer la respuesta de la API.";
 
-        // localStorage conserva la sesión aunque se actualice la página del navegador.
-        await js.InvokeVoidAsync("localStorage.setItem", ClaveToken, datos.Token);
-        await js.InvokeVoidAsync("localStorage.setItem", ClaveUsuario, datos.Usuario);
-        await js.InvokeVoidAsync("localStorage.setItem", ClaveEsAdministrador, datos.EsAdministrador.ToString().ToLowerInvariant());
+        await GuardarSesionAsync(datos.Token, datos.Usuario, datos.EsAdministrador, datos.Roles, null);
         return null;
     }
 
@@ -40,11 +48,40 @@ public class ServicioAutenticacion(HttpClient http, IJSRuntime js)
     public async Task<string?> ObtenerUsuarioAsync() =>
         await js.InvokeAsync<string?>("localStorage.getItem", ClaveUsuario);
 
-    /// <summary>Indica si el usuario actual posee el rol Administrador.</summary>
-    public async Task<bool> EsAdministradorAsync()
+    /// <summary>Identificador del usuario de la sesión, o 0 si todavía no se guardó.</summary>
+    public async Task<int> ObtenerIdUsuarioAsync()
     {
-        var valor = await js.InvokeAsync<string?>("localStorage.getItem", ClaveEsAdministrador);
-        return bool.TryParse(valor, out var esAdministrador) && esAdministrador;
+        var valor = await js.InvokeAsync<string?>("localStorage.getItem", ClaveId);
+        return int.TryParse(valor, out var id) ? id : 0;
+    }
+
+    /// <summary>Roles guardados al iniciar sesión o al validarla.</summary>
+    public async Task<IReadOnlyList<string>> ObtenerRolesAsync()
+    {
+        var json = await js.InvokeAsync<string?>("localStorage.getItem", ClaveRoles);
+        if (!string.IsNullOrWhiteSpace(json))
+        {
+            try
+            {
+                var lista = JsonSerializer.Deserialize<List<string>>(json);
+                if (lista is { Count: > 0 }) return lista;
+            }
+            catch (JsonException) { }
+        }
+
+        var flag = await js.InvokeAsync<string?>("localStorage.getItem", ClaveEsAdministrador);
+        return bool.TryParse(flag, out var esAdministrador) && esAdministrador ? [RolesPantalla.Administrador] : [];
+    }
+
+    /// <summary>Indica si el usuario actual posee el rol Administrador.</summary>
+    public async Task<bool> EsAdministradorAsync() =>
+        (await ObtenerRolesAsync()).Contains(RolesPantalla.Administrador, StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>Verdadero si la sesión tiene al menos uno de los roles indicados.</summary>
+    public async Task<bool> TieneAlgunRolAsync(params string[] requeridos)
+    {
+        var actuales = await ObtenerRolesAsync();
+        return requeridos.Any(rol => actuales.Contains(rol, StringComparer.OrdinalIgnoreCase));
     }
 
     /// <summary>
@@ -62,7 +99,7 @@ public class ServicioAutenticacion(HttpClient http, IJSRuntime js)
 
         var datos = await respuesta.Content.ReadFromJsonAsync<MeResponse>();
         if (datos is not null)
-            await js.InvokeVoidAsync("localStorage.setItem", ClaveEsAdministrador, datos.EsAdministrador.ToString().ToLowerInvariant());
+            await GuardarIdentidadAsync(datos.EsAdministrador, datos.Roles, datos.Id);
         return true;
     }
 
@@ -75,11 +112,30 @@ public class ServicioAutenticacion(HttpClient http, IJSRuntime js)
         await js.InvokeVoidAsync("localStorage.removeItem", ClaveToken);
         await js.InvokeVoidAsync("localStorage.removeItem", ClaveUsuario);
         await js.InvokeVoidAsync("localStorage.removeItem", ClaveEsAdministrador);
+        await js.InvokeVoidAsync("localStorage.removeItem", ClaveRoles);
+        await js.InvokeVoidAsync("localStorage.removeItem", ClaveId);
     }
 
-    /// <summary>Formato de la respuesta JSON que devuelve el endpoint de login.</summary>
-    private sealed record LoginResponse(string Token, string Usuario, bool EsAdministrador);
+    private async Task GuardarSesionAsync(string token, string usuario, bool esAdministrador, IEnumerable<string>? roles, string? id)
+    {
+        await js.InvokeVoidAsync("localStorage.setItem", ClaveToken, token);
+        await js.InvokeVoidAsync("localStorage.setItem", ClaveUsuario, usuario);
+        await GuardarIdentidadAsync(esAdministrador, roles, id);
+    }
 
-    /// <summary>Formato mínimo de la respuesta de GET /api/auth/me.</summary>
-    private sealed record MeResponse(bool EsAdministrador);
+    private async Task GuardarIdentidadAsync(bool esAdministrador, IEnumerable<string>? roles, string? id)
+    {
+        var lista = roles?.Where(rol => !string.IsNullOrWhiteSpace(rol)).Distinct(StringComparer.OrdinalIgnoreCase).ToList() ?? [];
+        if (esAdministrador && !lista.Contains(RolesPantalla.Administrador, StringComparer.OrdinalIgnoreCase))
+            lista.Add(RolesPantalla.Administrador);
+        var esAdmin = lista.Contains(RolesPantalla.Administrador, StringComparer.OrdinalIgnoreCase);
+        await js.InvokeVoidAsync("localStorage.setItem", ClaveEsAdministrador, esAdmin.ToString().ToLowerInvariant());
+        await js.InvokeVoidAsync("localStorage.setItem", ClaveRoles, JsonSerializer.Serialize(lista));
+        if (!string.IsNullOrWhiteSpace(id))
+            await js.InvokeVoidAsync("localStorage.setItem", ClaveId, id);
+    }
+
+    private sealed record LoginResponse(string Token, string Usuario, bool EsAdministrador, List<string>? Roles);
+
+    private sealed record MeResponse(string? Id, bool EsAdministrador, List<string>? Roles);
 }

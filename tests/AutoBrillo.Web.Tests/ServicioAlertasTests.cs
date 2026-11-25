@@ -92,7 +92,21 @@ public class ServicioAlertasTests
         Assert.Equal("El usuario no existe.", javascript.Argumentos[0]);
     }
 
-    private sealed class JavaScriptFalso(bool? respuesta) : IJSRuntime
+    [Fact]
+    public async Task PedirTexto_usa_sweetalert_y_descarta_el_vacio()
+    {
+        var javascript = new JavaScriptFalso("  se cargó mal  ");
+        var servicio = new ServicioAlertas(javascript);
+
+        var texto = await servicio.PedirTextoAsync("Motivo de anulación", "Indicá por qué se anula la venta #1.");
+
+        Assert.Equal("autobrilloAlerta.pedirTexto", javascript.Identificador);
+        Assert.Equal("se cargó mal", texto);
+        Assert.Null(await new ServicioAlertas(new JavaScriptFalso("   ")).PedirTextoAsync("t", "m"));
+        Assert.Null(await new ServicioAlertas(new JavaScriptFalso(null)).PedirTextoAsync("t", "m"));
+    }
+
+    private sealed class JavaScriptFalso(object? respuesta) : IJSRuntime
     {
         public string? Identificador { get; private set; }
         public object?[] Argumentos { get; private set; } = [];

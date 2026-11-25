@@ -114,10 +114,10 @@ public partial class AutoBrilloDbContext(DbContextOptions<AutoBrilloDbContext> o
         producto.HasKey(x => x.Id_Productos);
         producto.Property(x => x.Id_Productos).HasColumnName("Id_Productos");
         producto.Property(x => x.Descripcion).HasColumnName("Descripcion").HasMaxLength(150).IsRequired();
-        producto.Property(x => x.PrecioDeCosto).HasColumnName("PrecioDeCosto").HasPrecision(18, 2).IsRequired();
-        producto.Property(x => x.PrecioDeVenta).HasColumnName("PrecioDeVenta").HasPrecision(18, 2).IsRequired();
+        producto.Property(x => x.PrecioDeCosto).HasColumnName("PrecioDeCosto").HasPrecision(18, 0).IsRequired();
+        producto.Property(x => x.PrecioDeVenta).HasColumnName("PrecioDeVenta").HasPrecision(18, 0).IsRequired();
         producto.Property(x => x.Activo).HasColumnName("Activo").HasDefaultValue(true).IsRequired();
-        producto.Property(x => x.StockActual).HasColumnName("StockActual").HasPrecision(18, 2).IsRequired();
+        producto.Property(x => x.StockActual).HasColumnName("StockActual").HasPrecision(18, 0).IsRequired();
         producto.HasIndex(x => x.Descripcion).IsUnique();
         producto.HasMany(x => x.Tipos)
             .WithMany(x => x.Productos)

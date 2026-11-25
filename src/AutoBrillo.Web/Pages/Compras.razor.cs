@@ -4,6 +4,8 @@ namespace AutoBrillo.Web.Pages;
 
 public partial class Compras
 {
+    protected override string[] RolesPermitidos => [RolesPantalla.Administrador, RolesPantalla.Stock];
+
     private List<ProductoDto> productos = [];
     private List<PersonaDto> proveedores = [];
     private List<CompraDto> compras = [];

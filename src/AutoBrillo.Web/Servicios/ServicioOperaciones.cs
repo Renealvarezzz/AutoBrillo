@@ -1,14 +1,29 @@
+using System.Net;
 using System.Net.Http.Json;
 
 namespace AutoBrillo.Web.Servicios;
 
+/// <summary>La API respondió 403. La pantalla lo muestra en lugar de una lista vacía.</summary>
+public class AccesoDenegadoException(string mensaje) : Exception(mensaje);
+
 /// <summary>HTTP/JSON de vehículos, servicios, inventario y compras.</summary>
 public class ServicioOperaciones(HttpClient http)
 {
+    public const string MensajeSinPermiso = "Tu usuario no tiene permiso para esta acción.";
+
     public async Task<T?> ObtenerAsync<T>(string url)
     {
-        try { return await http.GetFromJsonAsync<T>(url); }
+        HttpResponseMessage respuesta;
+        try { respuesta = await http.GetAsync(url); }
         catch (HttpRequestException) { return default; }
+
+        using (respuesta)
+        {
+            if (respuesta.StatusCode == HttpStatusCode.Forbidden)
+                throw new AccesoDenegadoException(MensajeSinPermiso);
+            if (!respuesta.IsSuccessStatusCode) return default;
+            return await respuesta.Content.ReadFromJsonAsync<T>();
+        }
     }
 
     public Task<string?> PostAsync(string url, object datos) => EnviarAsync(HttpMethod.Post, url, datos);
@@ -25,7 +40,7 @@ public class ServicioOperaciones(HttpClient http)
     private static async Task<string?> LeerErrorAsync(HttpResponseMessage respuesta)
     {
         if (respuesta.IsSuccessStatusCode) return null;
-        if (respuesta.StatusCode == System.Net.HttpStatusCode.Forbidden) return "Tu usuario no tiene permiso para esta acción.";
+        if (respuesta.StatusCode == HttpStatusCode.Forbidden) return MensajeSinPermiso;
         try
         {
             var problema = await respuesta.Content.ReadFromJsonAsync<ProblemaApi>();

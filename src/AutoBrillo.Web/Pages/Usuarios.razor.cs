@@ -13,11 +13,13 @@ public partial class Usuarios
     private int idPersona;
     private string confirmacionPassword = string.Empty;
     private bool mostrarPasswords;
+    private int idSesion;
 
     protected override async Task OnInitializedAsync()
     {
         if (!await Autenticacion.ValidarSesionAsync()) { Navegacion.NavigateTo("login", true); return; }
         if (!await Autenticacion.EsAdministradorAsync()) { Navegacion.NavigateTo("inicio", true); return; }
+        idSesion = await Autenticacion.ObtenerIdUsuarioAsync();
         await CargarAsync();
         cargando = false;
     }
