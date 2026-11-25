@@ -15,8 +15,42 @@ public class ServicioOperativo(AutoBrilloDbContext contexto)
     public const string Adicional = "Adicional";
     public const string Insumo = "Insumo";
 
-    /// <summary>Hora local del lavadero, sin zona, para columnas timestamp.</summary>
-    public static DateTime Ahora() => DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
+    /// <summary>
+    /// Zona del lavadero. Si el contenedor no trae tzdata, se usa UTC−3
+    /// (Paraguay no aplica horario de verano desde 2024).
+    /// </summary>
+    public static TimeZoneInfo ZonaParaguay { get; } = ResolverZonaParaguay();
+
+    /// <summary>Hora de Paraguay, sin Kind, para columnas timestamp without time zone.</summary>
+    public static DateTime Ahora() => NormalizarFecha(DateTime.UtcNow);
+
+    /// <summary>
+    /// Deja la fecha en hora de Paraguay y Kind sin especificar.
+    /// Una fecha que ya viene sin zona se toma como hora del lavadero.
+    /// Hay que llamarlo antes de usarla en una consulta de EF: Npgsql rechaza Kind Utc.
+    /// </summary>
+    public static DateTime NormalizarFecha(DateTime fecha)
+    {
+        var paraguay = fecha.Kind switch
+        {
+            DateTimeKind.Utc => TimeZoneInfo.ConvertTimeFromUtc(fecha, ZonaParaguay),
+            DateTimeKind.Local => TimeZoneInfo.ConvertTime(fecha, ZonaParaguay),
+            _ => fecha
+        };
+        return DateTime.SpecifyKind(paraguay, DateTimeKind.Unspecified);
+    }
+
+    private static TimeZoneInfo ResolverZonaParaguay()
+    {
+        foreach (var id in new[] { "America/Asuncion", "Paraguay Standard Time" })
+        {
+            try { return TimeZoneInfo.FindSystemTimeZoneById(id); }
+            catch (TimeZoneNotFoundException) { }
+            catch (InvalidTimeZoneException) { }
+        }
+
+        return TimeZoneInfo.CreateCustomTimeZone("America/Asuncion", TimeSpan.FromHours(-3), "Paraguay", "Paraguay");
+    }
 
     /// <summary>Servicios y adicionales no mueven stock. Un producto que también es insumo, sí.</summary>
     public static bool ManejaStock(Producto producto) =>
@@ -75,7 +109,7 @@ public class ServicioOperativo(AutoBrilloDbContext contexto)
     public async Task<decimal> ResolverPrecioAsync(int idProducto, int idTipoVehiculo, CancellationToken ct)
     {
         var especifico = await contexto.PreciosServicios
-            .Where(x => x.Id_Productos == idProducto && x.Id_Tipos_Vehiculos == idTipoVehiculo)
+            .Where(x => x.Id_Productos == idProducto && x.Id_Tipos_Vehiculos == idTipoVehiculo && x.Vigente)
             .Select(x => (decimal?)x.Precio)
             .FirstOrDefaultAsync(ct);
         if (especifico is not null) return especifico.Value;

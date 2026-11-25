@@ -133,9 +133,12 @@
                                 <button type="button" class="boton-icono secundario" @onclick="() => Editar(usuario)" aria-label="Editar usuario" title="Editar usuario">
                                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4l10-10-4-4L4 16v4Z" /><path d="m12.5 7.5 4 4" /></svg>
                                 </button>
+                                @if (usuario.Id_Usuarios != idSesion)
+                                {
                                 <button type="button" class="boton-icono peligro" @onclick="() => Eliminar(usuario)" aria-label="Eliminar usuario" title="Eliminar usuario">
                                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16" /><path d="M9 7V4h6v3" /><path d="M6 7l1 13h10l1-13" /><path d="M10 11v5M14 11v5" /></svg>
                                 </button>
+                                }
                             </td>
                         </tr>
                     }

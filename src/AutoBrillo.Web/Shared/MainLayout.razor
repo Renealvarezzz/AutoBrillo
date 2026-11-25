@@ -13,7 +13,14 @@
             {
                 <nav class="menu"><a href="roles">Roles</a><a href="usuarios">Usuarios</a><a href="personas">Personas</a><a href="vehiculos">Vehículos</a><a href="productos">Productos</a><a href="servicios">Servicios</a><a href="inventario">Inventario</a><a href="compras">Compras</a></nav>
             }
-            <nav class="menu"><a href="lavados">Lavados</a><a href="ventas">Ventas</a>@if (esAdministrador) { <a href="comisiones">Comisiones</a> }</nav>
+            else if (esStock)
+            {
+                <nav class="menu"><a href="inventario">Inventario</a><a href="compras">Compras</a></nav>
+            }
+            @if (esOperacion)
+            {
+                <nav class="menu"><a href="lavados">Lavados</a><a href="ventas">Ventas</a>@if (esAdministrador) { <a href="comisiones">Comisiones</a> }</nav>
+            }
             <div class="sesion"><span>Hola, @usuario</span><button @onclick="Salir">Salir</button></div>
         }
     </header>

@@ -1,3 +1,5 @@
+using AutoBrillo.Web.Servicios;
+
 namespace AutoBrillo.Web.Shared;
 
 /// <summary>
@@ -6,15 +8,22 @@ namespace AutoBrillo.Web.Shared;
 /// </summary>
 public partial class MainLayout
 {
-    // Nombre que se leerá de localStorage para saludar al usuario en la barra superior.
     private string? usuario;
     private bool esAdministrador;
+    private bool esStock;
+    private bool esOperacion;
 
-    /// <summary>Obtiene el nombre de la sesión guardada cuando se crea el diseño de la página.</summary>
+    /// <summary>Obtiene el nombre y los roles de la sesión cuando se crea el diseño de la página.</summary>
     protected override async Task OnInitializedAsync()
     {
+        if (!await Autenticacion.ValidarSesionAsync()) return;
         usuario = await Autenticacion.ObtenerUsuarioAsync();
-        esAdministrador = await Autenticacion.EsAdministradorAsync();
+        var roles = await Autenticacion.ObtenerRolesAsync();
+        esAdministrador = roles.Contains(RolesPantalla.Administrador, StringComparer.OrdinalIgnoreCase);
+        esStock = roles.Contains(RolesPantalla.Stock, StringComparer.OrdinalIgnoreCase);
+        esOperacion = esAdministrador
+            || roles.Contains(RolesPantalla.Supervisor, StringComparer.OrdinalIgnoreCase)
+            || roles.Contains(RolesPantalla.Caja, StringComparer.OrdinalIgnoreCase);
     }
 
     /// <summary>

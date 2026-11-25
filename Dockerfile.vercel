@@ -12,5 +12,6 @@ RUN dotnet publish src/AutoBrillo.Api/AutoBrillo.Api.csproj -c Release --no-rest
 FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble-chiseled
 WORKDIR /app
 COPY --from=compilacion /app/publicado ./
+ENV TZ=America/Asuncion
 ENV PORT=8080
 ENTRYPOINT ["dotnet", "AutoBrillo.Api.dll"]

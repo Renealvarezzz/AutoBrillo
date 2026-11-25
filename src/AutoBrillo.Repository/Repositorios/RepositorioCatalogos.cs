@@ -36,6 +36,7 @@ public class RepositorioCatalogos(AutoBrilloDbContext contexto, ServicioOperativ
 
     public Task<List<PrecioServicio>> ObtenerPreciosAsync(CancellationToken ct = default) =>
         contexto.PreciosServicios.AsNoTracking().Include(x => x.Producto).Include(x => x.TipoVehiculo)
+            .Where(x => x.Vigente)
             .OrderBy(x => x.Producto!.Descripcion).ThenBy(x => x.Id_Tipos_Vehiculos).ToListAsync(ct);
 
     public async Task<PrecioServicio> GuardarPrecioAsync(int idProducto, int idTipoVehiculo, decimal precio, int idUsuario, CancellationToken ct = default)
@@ -47,24 +48,40 @@ public class RepositorioCatalogos(AutoBrilloDbContext contexto, ServicioOperativ
         if (!await contexto.TiposVehiculos.AnyAsync(x => x.Id_Tipos_Vehiculos == idTipoVehiculo, ct))
             throw new ReglaNegocioException("Tipo de vehículo inválido.");
 
-        var actual = await contexto.PreciosServicios.FirstOrDefaultAsync(x => x.Id_Productos == idProducto && x.Id_Tipos_Vehiculos == idTipoVehiculo, ct);
-        if (actual is null)
+        var vigentes = await contexto.PreciosServicios
+            .Where(x => x.Id_Productos == idProducto && x.Id_Tipos_Vehiculos == idTipoVehiculo && x.Vigente)
+            .ToListAsync(ct);
+        if (vigentes.Count == 1 && vigentes[0].Precio == precio)
         {
-            actual = new PrecioServicio { Id_Productos = idProducto, Id_Tipos_Vehiculos = idTipoVehiculo };
-            contexto.PreciosServicios.Add(actual);
+            vigentes[0].FechaActualizacion = ServicioOperativo.Ahora();
+            vigentes[0].Id_Usuarios = idUsuario;
+            await contexto.SaveChangesAsync(ct);
+            return vigentes[0];
         }
 
-        actual.Precio = precio;
-        actual.FechaActualizacion = ServicioOperativo.Ahora();
-        actual.Id_Usuarios = idUsuario;
+        await using var tx = await contexto.Database.BeginTransactionAsync(ct);
+        foreach (var anterior in vigentes) anterior.Vigente = false;
+        if (vigentes.Count > 0) await contexto.SaveChangesAsync(ct);
+        var nuevo = new PrecioServicio
+        {
+            Id_Productos = idProducto,
+            Id_Tipos_Vehiculos = idTipoVehiculo,
+            Precio = precio,
+            Vigente = true,
+            FechaActualizacion = ServicioOperativo.Ahora(),
+            Id_Usuarios = idUsuario
+        };
+        contexto.PreciosServicios.Add(nuevo);
         await contexto.SaveChangesAsync(ct);
-        return actual;
+        await tx.CommitAsync(ct);
+        return nuevo;
     }
 
     public async Task EliminarPrecioAsync(int id, CancellationToken ct = default)
     {
-        var precio = await contexto.PreciosServicios.FindAsync([id], ct) ?? throw new ReglaNegocioException("Precio no encontrado.");
-        contexto.PreciosServicios.Remove(precio);
+        var precio = await contexto.PreciosServicios.FirstOrDefaultAsync(x => x.Id_Precios_Servicios == id, ct) ?? throw new ReglaNegocioException("Precio no encontrado.");
+        if (!precio.Vigente) throw new ReglaNegocioException("Ese precio ya no está vigente.");
+        precio.Vigente = false;
         await contexto.SaveChangesAsync(ct);
     }
 

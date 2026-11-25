@@ -62,7 +62,11 @@ public partial class AutoBrilloDbContext
         var precio = modelBuilder.Entity<PrecioServicio>();
         precio.ToTable("precios_servicios").HasKey(x => x.Id_Precios_Servicios);
         precio.Property(x => x.Precio).HasPrecision(18, 0);
-        precio.HasIndex(x => new { x.Id_Productos, x.Id_Tipos_Vehiculos }).IsUnique();
+        precio.Property(x => x.Vigente).HasDefaultValue(true).IsRequired();
+        precio.HasIndex(x => new { x.Id_Productos, x.Id_Tipos_Vehiculos })
+            .IsUnique()
+            .HasFilter("\"Vigente\" = true")
+            .HasDatabaseName("ux_precios_servicios_vigente");
         precio.HasOne(x => x.Producto).WithMany().HasForeignKey(x => x.Id_Productos).OnDelete(DeleteBehavior.Cascade);
         precio.HasOne(x => x.TipoVehiculo).WithMany().HasForeignKey(x => x.Id_Tipos_Vehiculos).OnDelete(DeleteBehavior.Restrict);
 
@@ -111,6 +115,10 @@ public partial class AutoBrilloDbContext
         venta.Property(x => x.Total).HasPrecision(18, 0);
         venta.Property(x => x.Estado).HasMaxLength(20);
         venta.Property(x => x.MotivoAnulacion).HasMaxLength(250);
+        venta.HasIndex(x => x.Id_Lavados)
+            .IsUnique()
+            .HasFilter("\"Id_Lavados\" IS NOT NULL AND \"Estado\" <> 'Anulada'")
+            .HasDatabaseName("ux_ventas_lavado_activa");
         venta.HasOne(x => x.Lavado).WithMany().HasForeignKey(x => x.Id_Lavados).OnDelete(DeleteBehavior.Restrict);
         venta.HasOne(x => x.Usuario).WithMany().HasForeignKey(x => x.Id_Usuarios).OnDelete(DeleteBehavior.Restrict);
         venta.HasMany(x => x.Detalles).WithOne().HasForeignKey(x => x.Id_Ventas).OnDelete(DeleteBehavior.Cascade);

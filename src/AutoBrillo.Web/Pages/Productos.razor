@@ -30,8 +30,12 @@
                 <input id="producto-venta" @bind="edicion.PrecioDeVenta" type="number" min="0" step="1" inputmode="numeric" placeholder="0" />
             </div>
             <div class="campo-abm">
-                <label for="producto-stock">Stock actual</label>
-                <input id="producto-stock" @bind="edicion.StockActual" type="number" min="0" step="1" inputmode="numeric" placeholder="0" />
+                <label for="producto-stock">@(edicion.Id_Productos == 0 ? "Stock inicial" : "Stock actual")</label>
+                <input id="producto-stock" @bind="edicion.StockActual" type="number" min="0" step="1" inputmode="numeric" placeholder="0" disabled="@(edicion.Id_Productos != 0)" />
+                @if (edicion.Id_Productos != 0)
+                {
+                    <small>El stock se actualiza con compras, ventas o ajustes de inventario.</small>
+                }
             </div>
         </div>
 

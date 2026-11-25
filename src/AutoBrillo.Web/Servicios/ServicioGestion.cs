@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Json;
 
 namespace AutoBrillo.Web.Servicios;
@@ -5,12 +6,27 @@ namespace AutoBrillo.Web.Servicios;
 /// <summary>Comunicación HTTP/JSON de los ABM de Roles y Usuarios con AutoBrillo.Api.</summary>
 public class ServicioGestion(HttpClient http)
 {
-    public Task<List<RolDto>?> ObtenerRolesAsync() => http.GetFromJsonAsync<List<RolDto>>("api/roles");
-    public Task<List<UsuarioDto>?> ObtenerUsuariosAsync() => http.GetFromJsonAsync<List<UsuarioDto>>("api/usuarios");
-    public Task<List<PersonaDto>?> ObtenerPersonasAsync() => http.GetFromJsonAsync<List<PersonaDto>>("api/personas");
-    public Task<List<TipoPersonaDto>?> ObtenerTiposPersonasAsync() => http.GetFromJsonAsync<List<TipoPersonaDto>>("api/tipos-personas");
-    public Task<List<ProductoDto>?> ObtenerProductosAsync() => http.GetFromJsonAsync<List<ProductoDto>>("api/productos");
-    public Task<List<TipoProductoDto>?> ObtenerTiposProductosAsync() => http.GetFromJsonAsync<List<TipoProductoDto>>("api/tipos-productos");
+    public Task<List<RolDto>?> ObtenerRolesAsync() => ObtenerAsync<List<RolDto>>("api/roles");
+    public Task<List<UsuarioDto>?> ObtenerUsuariosAsync() => ObtenerAsync<List<UsuarioDto>>("api/usuarios");
+    public Task<List<PersonaDto>?> ObtenerPersonasAsync() => ObtenerAsync<List<PersonaDto>>("api/personas");
+    public Task<List<TipoPersonaDto>?> ObtenerTiposPersonasAsync() => ObtenerAsync<List<TipoPersonaDto>>("api/tipos-personas");
+    public Task<List<ProductoDto>?> ObtenerProductosAsync() => ObtenerAsync<List<ProductoDto>>("api/productos");
+    public Task<List<TipoProductoDto>?> ObtenerTiposProductosAsync() => ObtenerAsync<List<TipoProductoDto>>("api/tipos-productos");
+
+    private async Task<T?> ObtenerAsync<T>(string url)
+    {
+        HttpResponseMessage respuesta;
+        try { respuesta = await http.GetAsync(url); }
+        catch (HttpRequestException) { return default; }
+
+        using (respuesta)
+        {
+            if (respuesta.StatusCode == HttpStatusCode.Forbidden)
+                throw new AccesoDenegadoException(ServicioOperaciones.MensajeSinPermiso);
+            if (!respuesta.IsSuccessStatusCode) return default;
+            return await respuesta.Content.ReadFromJsonAsync<T>();
+        }
+    }
 
     public async Task<string?> GuardarRolAsync(RolDto rol)
     {
@@ -81,6 +97,7 @@ public class ServicioGestion(HttpClient http)
     private static async Task<string?> LeerErrorAsync(HttpResponseMessage respuesta)
     {
         if (respuesta.IsSuccessStatusCode) return null;
+        if (respuesta.StatusCode == HttpStatusCode.Forbidden) return ServicioOperaciones.MensajeSinPermiso;
         try
         {
             var problema = await respuesta.Content.ReadFromJsonAsync<ProblemaApi>();

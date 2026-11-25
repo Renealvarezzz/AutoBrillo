@@ -29,6 +29,7 @@ public class RepositorioSprintTres(AutoBrilloDbContext db, ServicioOperativo ope
 
     public async Task<Lavado> RegistrarLavadoAsync(Lavado lavado, int usuario, CancellationToken ct)
     {
+        lavado.Fecha = ServicioOperativo.NormalizarFecha(lavado.Fecha);
         var vehiculo = await db.Vehiculos.Include(x => x.Cliente).FirstOrDefaultAsync(x => x.Id_Vehiculos == lavado.Id_Vehiculos && x.Activo && x.Cliente!.Activo, ct)
             ?? throw new ReglaNegocioException("Seleccioná un vehículo registrado y activo.");
         if (lavado.Sector is < 1 or > 10) throw new ReglaNegocioException("Seleccioná uno de los diez sectores.");
@@ -47,7 +48,6 @@ public class RepositorioSprintTres(AutoBrilloDbContext db, ServicioOperativo ope
             if (!linea.EsAdicional && !ServicioOperativo.TieneTipo(producto, ServicioOperativo.Servicio)) throw new ReglaNegocioException("Elegí un servicio activo.");
             linea.PrecioAplicado = await operativo.ResolverPrecioAsync(linea.Id_Productos, tipoVehiculo, ct);
         }
-        lavado.Fecha = DateTime.SpecifyKind(lavado.Fecha, DateTimeKind.Unspecified);
         lavado.Estado = "Registrado"; lavado.Id_Usuarios = usuario;
         lavado.HistorialEstados.Add(new LavadoHistorialEstado { Estado = lavado.Estado, Fecha = ServicioOperativo.Ahora(), Id_Usuarios = usuario });
         db.Lavados.Add(lavado); await db.SaveChangesAsync(ct); return lavado;
@@ -55,10 +55,11 @@ public class RepositorioSprintTres(AutoBrilloDbContext db, ServicioOperativo ope
 
     public async Task<Lavado> ActualizarLavadoAsync(int id, Lavado entrada, CancellationToken ct)
     {
+        entrada.Fecha = ServicioOperativo.NormalizarFecha(entrada.Fecha);
         var lavado = await db.Lavados.Include(x => x.Servicios).Include(x => x.Participantes).FirstOrDefaultAsync(x => x.Id_Lavados == id, ct)
             ?? throw new ReglaNegocioException("Lavado no encontrado.");
         if (lavado.Estado != "Registrado") throw new ReglaNegocioException("Solo se pueden modificar lavados registrados.");
-        if (await db.Ventas.AnyAsync(v => v.Id_Lavados == id, ct)) throw new ReglaNegocioException("No se puede modificar un lavado con una venta asociada.");
+        if (await db.Ventas.AnyAsync(v => v.Id_Lavados == id && v.Estado != "Anulada", ct)) throw new ReglaNegocioException("No se puede modificar un lavado con una venta activa.");
         var vehiculo = await db.Vehiculos.FirstOrDefaultAsync(x => x.Id_Vehiculos == entrada.Id_Vehiculos && x.Activo && x.Cliente!.Activo, ct)
             ?? throw new ReglaNegocioException("Seleccioná un vehículo registrado y activo.");
         if (entrada.Sector is < 1 or > 10) throw new ReglaNegocioException("Seleccioná uno de los diez sectores.");
@@ -78,7 +79,6 @@ public class RepositorioSprintTres(AutoBrilloDbContext db, ServicioOperativo ope
         db.LavadosServicios.RemoveRange(lavado.Servicios); db.LavadosParticipantes.RemoveRange(lavado.Participantes);
         lavado.Id_Vehiculos = entrada.Id_Vehiculos; lavado.Sector = entrada.Sector; lavado.Fecha = entrada.Fecha;
         lavado.Servicios = entrada.Servicios; lavado.Participantes = entrada.Participantes;
-        lavado.Fecha = DateTime.SpecifyKind(lavado.Fecha, DateTimeKind.Unspecified);
         await db.SaveChangesAsync(ct); return lavado;
     }
 
@@ -101,16 +101,21 @@ public class RepositorioSprintTres(AutoBrilloDbContext db, ServicioOperativo ope
     public async Task AnularLavadoAsync(int id, string motivo, int usuario, CancellationToken ct)
     {
         var lavado = await db.Lavados.Include(x => x.Servicios).FirstOrDefaultAsync(x => x.Id_Lavados == id, ct) ?? throw new ReglaNegocioException("Lavado no encontrado.");
+        if (lavado.Estado is not ("Registrado" or "Terminado")) throw new ReglaNegocioException("Solo se puede cancelar un lavado registrado o terminado.");
+        var texto = ServicioOperativo.ValidarMotivo(motivo);
         var estabaTerminado = lavado.Estado == "Terminado";
-        ServicioOperativo.MarcarAnulada(lavado, "Cancelado", ServicioOperativo.ValidarMotivo(motivo), usuario);
+        var ventas = await db.Ventas.Include(x => x.Detalles).Include(x => x.Comisiones)
+            .Where(x => x.Id_Lavados == id && x.Estado == "Registrada").ToListAsync(ct);
+        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        ServicioOperativo.MarcarAnulada(lavado, "Cancelado", texto, usuario);
         if (estabaTerminado)
             foreach (var linea in lavado.Servicios)
                 foreach (var insumo in await db.ServiciosInsumos.AsNoTracking().Where(x => x.Id_Servicios == linea.Id_Productos).ToListAsync(ct))
-                    await operativo.MoverStockAsync(insumo.Id_Insumos, ReglasNegocio.Entrada, "Anulación lavado", insumo.Cantidad, id, motivo, usuario, ct, forzar: true);
+                    await operativo.MoverStockAsync(insumo.Id_Insumos, ReglasNegocio.Entrada, "Anulación lavado", insumo.Cantidad, id, texto, usuario, ct, forzar: true);
         lavado.HistorialEstados.Add(new LavadoHistorialEstado { Id_Lavados = id, Estado = lavado.Estado, Fecha = ServicioOperativo.Ahora(), Id_Usuarios = usuario });
-        var venta = await db.Ventas.FirstOrDefaultAsync(x => x.Id_Lavados == id && x.Estado == "Registrada", ct);
-        if (venta is not null) await AnularVentaAsync(venta.Id_Ventas, motivo, usuario, ct);
+        foreach (var venta in ventas) await AplicarAnulacionVentaAsync(venta, texto, usuario, ct);
         await db.SaveChangesAsync(ct);
+        await tx.CommitAsync(ct);
     }
 
     public Task<List<Venta>> ObtenerVentasAsync(CancellationToken ct) => db.Ventas.AsNoTracking().Include(x => x.Usuario).Include(x => x.Lavado).Include(x => x.Detalles).ThenInclude(x => x.Producto).Include(x => x.Cobros).OrderByDescending(x => x.Fecha).ToListAsync(ct);
@@ -119,39 +124,52 @@ public class RepositorioSprintTres(AutoBrilloDbContext db, ServicioOperativo ope
     {
         if (venta.Condicion is not ("Contado" or "Crédito")) throw new ReglaNegocioException("La condición debe ser Contado o Crédito.");
         if (venta.Detalles.Count == 0) throw new ReglaNegocioException("Agregá al menos un producto o servicio.");
-        if (venta.Id_Lavados is int washId && !await db.Lavados.AnyAsync(x => x.Id_Lavados == washId && x.Estado == "Registrado", ct)) throw new ReglaNegocioException("El lavado asociado no está disponible.");
         Lavado? lavadoAsociado = null;
         if (venta.Id_Lavados is int idLavadoAsociado)
         {
-            lavadoAsociado = await db.Lavados.Include(x => x.Servicios).FirstOrDefaultAsync(x => x.Id_Lavados == idLavadoAsociado && x.Estado == "Registrado", ct)
+            lavadoAsociado = await db.Lavados.Include(x => x.Servicios).FirstOrDefaultAsync(x => x.Id_Lavados == idLavadoAsociado, ct)
                 ?? throw new ReglaNegocioException("El lavado asociado no está disponible.");
+            var tieneVentaActiva = await db.Ventas.AnyAsync(v => v.Id_Lavados == idLavadoAsociado && v.Estado != "Anulada", ct);
+            if (!ReglasNegocio.LavadoDisponibleParaVenta(lavadoAsociado.Estado, tieneVentaActiva))
+                throw new ReglaNegocioException(tieneVentaActiva ? "Ese lavado ya tiene una venta activa." : "El lavado asociado no está disponible.");
             var servicioLavado = lavadoAsociado.Servicios.Single(x => !x.EsAdicional);
             var lineasServicio = venta.Detalles.Where(x => x.Id_Productos == servicioLavado.Id_Productos).ToList();
             if (lineasServicio.Count != 1 || lineasServicio[0].Cantidad != 1)
                 throw new ReglaNegocioException("La venta asociada debe incluir el servicio del lavado.");
         }
+        var subtotalesComision = new List<decimal>();
         foreach (var d in venta.Detalles)
         {
-            if (d.Cantidad <= 0 || d.Cantidad != decimal.Truncate(d.Cantidad) || d.PrecioUnitario < 0 || d.PrecioUnitario != decimal.Truncate(d.PrecioUnitario)) throw new ReglaNegocioException("Cantidad e importe deben ser enteros válidos.");
+            if (d.Cantidad <= 0 || d.Cantidad != decimal.Truncate(d.Cantidad)) throw new ReglaNegocioException("La cantidad debe ser un entero mayor a cero.");
             var p = await operativo.ObtenerProductoAsync(d.Id_Productos, ct);
             if (!p.Activo) throw new ReglaNegocioException($"«{p.Descripcion}» está inactivo.");
             var aplicado = lavadoAsociado?.Servicios.FirstOrDefault(x => x.Id_Productos == d.Id_Productos);
             d.PrecioUnitario = aplicado?.PrecioAplicado ?? p.PrecioDeVenta;
+            if (d.PrecioUnitario < 0 || d.PrecioUnitario != decimal.Truncate(d.PrecioUnitario)) throw new ReglaNegocioException("El precio del producto debe ser un entero no negativo.");
             d.Subtotal = d.Cantidad * d.PrecioUnitario;
+            if (ServicioOperativo.TieneTipo(p, ServicioOperativo.Servicio) || ServicioOperativo.TieneTipo(p, ServicioOperativo.Adicional))
+                subtotalesComision.Add(d.Subtotal);
         }
         venta.Fecha = ServicioOperativo.Ahora(); venta.Estado = "Registrada"; venta.Id_Usuarios = usuario; venta.Total = venta.Detalles.Sum(x => x.Subtotal);
         await using var tx = await db.Database.BeginTransactionAsync(ct);
-        db.Ventas.Add(venta); await db.SaveChangesAsync(ct);
-        if (venta.Id_Lavados is int idLavadoComision)
+        try
         {
-            var lavadoParaComision = await db.Lavados.Include(x => x.Participantes).FirstAsync(x => x.Id_Lavados == idLavadoComision, ct);
-            var porcentaje = await ObtenerPorcentajeAsync(ct);
-            var importe = ReglasNegocio.CalcularComision(venta.Total, porcentaje, lavadoParaComision.Participantes.Count);
-            db.Comisiones.AddRange(lavadoParaComision.Participantes.Select(x => new Comision { Id_Ventas = venta.Id_Ventas, Id_Personas = x.Id_Personas, PorcentajeAplicado = porcentaje, Importe = importe }));
+            db.Ventas.Add(venta); await db.SaveChangesAsync(ct);
+            if (venta.Id_Lavados is int idLavadoComision)
+            {
+                var lavadoParaComision = await db.Lavados.Include(x => x.Participantes).FirstAsync(x => x.Id_Lavados == idLavadoComision, ct);
+                var porcentaje = await ObtenerPorcentajeAsync(ct);
+                var importe = ReglasNegocio.CalcularComision(ReglasNegocio.SumarBaseComision(subtotalesComision), porcentaje, lavadoParaComision.Participantes.Count);
+                db.Comisiones.AddRange(lavadoParaComision.Participantes.Select(x => new Comision { Id_Ventas = venta.Id_Ventas, Id_Personas = x.Id_Personas, PorcentajeAplicado = porcentaje, Importe = importe }));
+            }
+            foreach (var d in venta.Detalles)
+                if (ServicioOperativo.ManejaStock(await operativo.ObtenerProductoAsync(d.Id_Productos, ct))) await operativo.MoverStockAsync(d.Id_Productos, ReglasNegocio.Salida, "Venta", d.Cantidad, venta.Id_Ventas, null, usuario, ct);
+            await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return venta;
         }
-        foreach (var d in venta.Detalles)
-            if (ServicioOperativo.ManejaStock(await operativo.ObtenerProductoAsync(d.Id_Productos, ct))) await operativo.MoverStockAsync(d.Id_Productos, ReglasNegocio.Salida, "Venta", d.Cantidad, venta.Id_Ventas, null, usuario, ct);
-        await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return venta;
+        catch (DbUpdateException ex) when (EsVentaDuplicada(ex))
+        {
+            throw new ReglaNegocioException("Ese lavado ya tiene una venta activa.");
+        }
     }
 
     public async Task RegistrarCobroAsync(int id, string medio, decimal importe, int usuario, CancellationToken ct)
@@ -166,12 +184,23 @@ public class RepositorioSprintTres(AutoBrilloDbContext db, ServicioOperativo ope
     public async Task AnularVentaAsync(int id, string motivo, int usuario, CancellationToken ct)
     {
         var venta = await db.Ventas.Include(x => x.Detalles).Include(x => x.Comisiones).FirstOrDefaultAsync(x => x.Id_Ventas == id, ct) ?? throw new ReglaNegocioException("Venta no encontrada.");
-        ServicioOperativo.MarcarAnulada(venta, "Anulada", ServicioOperativo.ValidarMotivo(motivo), usuario);
+        var texto = ServicioOperativo.ValidarMotivo(motivo);
+        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await AplicarAnulacionVentaAsync(venta, texto, usuario, ct);
+        await db.SaveChangesAsync(ct);
+        await tx.CommitAsync(ct);
+    }
+
+    private async Task AplicarAnulacionVentaAsync(Venta venta, string motivo, int usuario, CancellationToken ct)
+    {
+        ServicioOperativo.MarcarAnulada(venta, "Anulada", motivo, usuario);
         foreach (var c in venta.Comisiones) c.Anulada = true;
         foreach (var d in venta.Detalles)
-            if (ServicioOperativo.ManejaStock(await operativo.ObtenerProductoAsync(d.Id_Productos, ct))) await operativo.MoverStockAsync(d.Id_Productos, ReglasNegocio.Entrada, "Anulación venta", d.Cantidad, id, motivo, usuario, ct, forzar: true);
-        await db.SaveChangesAsync(ct);
+            if (ServicioOperativo.ManejaStock(await operativo.ObtenerProductoAsync(d.Id_Productos, ct))) await operativo.MoverStockAsync(d.Id_Productos, ReglasNegocio.Entrada, "Anulación venta", d.Cantidad, venta.Id_Ventas, motivo, usuario, ct, forzar: true);
     }
+
+    private static bool EsVentaDuplicada(DbUpdateException ex) =>
+        ex.InnerException?.Message.Contains("ux_ventas_lavado_activa", StringComparison.OrdinalIgnoreCase) == true;
 
     public async Task<decimal> ObtenerPorcentajeAsync(CancellationToken ct) => await db.ConfiguracionesComision.Select(x => (decimal?)x.Porcentaje).FirstOrDefaultAsync(ct) ?? 30m;
     public async Task GuardarPorcentajeAsync(decimal porcentaje, int usuario, CancellationToken ct)

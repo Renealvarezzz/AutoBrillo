@@ -43,4 +43,11 @@ public class ServicioAlertas(IJSRuntime javascript)
 
     public ValueTask MostrarErrorEliminarAsync(string detalle)
         => javascript.InvokeVoidAsync("autobrilloAlerta.error", detalle);
+
+    /// <summary>Pide un texto con SweetAlert2. Devuelve null si la persona cancela o lo deja vacío.</summary>
+    public async Task<string?> PedirTextoAsync(string titulo, string mensaje)
+    {
+        var valor = await javascript.InvokeAsync<string?>("autobrilloAlerta.pedirTexto", titulo, mensaje);
+        return string.IsNullOrWhiteSpace(valor) ? null : valor.Trim();
+    }
 }

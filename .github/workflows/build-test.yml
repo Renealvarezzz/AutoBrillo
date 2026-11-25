@@ -1,0 +1,22 @@
+name: Compilar y probar
+
+on:
+  pull_request:
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Obtener el código
+        uses: actions/checkout@v4
+
+      - name: Instalar .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Compilar
+        run: dotnet build AutoBrillo.slnx --configuration Release
+
+      - name: Probar
+        run: dotnet test AutoBrillo.slnx --configuration Release --no-build

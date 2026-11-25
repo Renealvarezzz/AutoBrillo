@@ -8,6 +8,7 @@ public interface IProductoRepository
     Task<Producto?> ObtenerPorIdAsync(int id, CancellationToken cancellationToken = default);
     Task<bool> ExisteDescripcionAsync(string descripcion, int? excluirId = null, CancellationToken cancellationToken = default);
     Task AgregarAsync(Producto producto, CancellationToken cancellationToken = default);
+    Task<Producto> CrearConStockInicialAsync(Producto producto, decimal stockInicial, int idUsuario, CancellationToken cancellationToken = default);
     void Eliminar(Producto producto);
     Task GuardarCambiosAsync(CancellationToken cancellationToken = default);
 }
