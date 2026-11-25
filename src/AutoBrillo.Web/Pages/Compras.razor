@@ -19,11 +19,11 @@ else
             <div class="campo-abm"><label>Comprobante</label><input maxlength="50" @bind="comprobante" placeholder="Ej.: Factura 001-001-0001234" /></div>
         </div>
         <EditorLineas Productos="productos" Lineas="lineas" UsarPrecioCosto="true" />
-        <div class="acciones-formulario"><button @onclick="Registrar">Registrar compra</button></div>
+        <div class="acciones-formulario"><button type="button" class="btn btn-primary" @onclick="Registrar">Registrar compra</button></div>
 
         <h2>Historial</h2>
         <TablaDatos Id="tabla-compras" Datos="compras">
-                <thead><tr><th>#</th><th>Fecha</th><th>Proveedor</th><th>Comprobante</th><th>Detalle</th><th>Total</th><th>Estado</th><th></th></tr></thead>
+                <thead><tr><th>#</th><th>Fecha</th><th>Proveedor</th><th>Comprobante</th><th>Detalle</th><th>Total</th><th>Estado</th><th class="acciones-tabla">Acciones</th></tr></thead>
                 <tbody>
                     @foreach (var c in compras)
                     {
@@ -31,7 +31,7 @@ else
                             <td>@c.Id_Compras</td><td data-order="@c.Fecha.ToString("yyyyMMddHHmmss")">@Fecha(c.Fecha)</td><td>@c.Proveedor</td><td>@c.Comprobante</td>
                             <td>@string.Join(", ", c.Detalles.Select(d => $"{Gs(d.Cantidad)} x {d.Producto}"))</td><td data-order="@c.Total.ToString(System.Globalization.CultureInfo.InvariantCulture)">@Gs(c.Total)</td>
                             <td><span class="estado-chip @(c.Estado == "Anulada" ? "alerta" : "ok")" title="@c.MotivoAnulacion">@c.Estado</span></td>
-                            <td>@if (esAdministrador && c.Estado != "Anulada") { <button class="peligro" @onclick="() => Anular(c)">Anular</button> }</td>
+                            <td class="acciones-tabla">@if (esAdministrador && c.Estado != "Anulada") { <div class="btn-group btn-group-sm" role="group"><button type="button" class="btn btn-sm btn-outline-danger" title="Anular" aria-label="Anular compra" @onclick="() => Anular(c)"><i class="bi bi-x-circle" aria-hidden="true"></i></button></div> }</td>
                         </tr>
                     }
                 </tbody>

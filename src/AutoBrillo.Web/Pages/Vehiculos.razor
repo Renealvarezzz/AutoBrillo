@@ -26,11 +26,11 @@ else
             <div class="campo-abm"><label for="vehiculo-color">Color</label><input id="vehiculo-color" maxlength="40" @bind="color" /></div>
         </div>
         <div class="acciones-formulario">
-            <button @onclick="Guardar">@(idVehiculo == 0 ? "Agregar vehículo" : "Guardar vehículo")</button>
-            @if (idVehiculo != 0) { <button class="secundario" @onclick="Limpiar">Cancelar</button> }
+            <button type="button" class="btn btn-primary" @onclick="Guardar">@(idVehiculo == 0 ? "Agregar vehículo" : "Guardar vehículo")</button>
+            @if (idVehiculo != 0) { <button type="button" class="btn btn-outline-secondary" @onclick="Limpiar">Cancelar</button> }
         </div>
         <TablaDatos Id="tabla-vehiculos" Datos="vehiculos">
-                <thead><tr><th>Cliente</th><th>Patente</th><th>Tipo</th><th>Marca</th><th>Modelo</th><th>Color</th><th>Estado</th><th>Acciones</th></tr></thead>
+                <thead><tr><th>Cliente</th><th>Patente</th><th>Tipo</th><th>Marca</th><th>Modelo</th><th>Color</th><th>Estado</th><th class="acciones-tabla">Acciones</th></tr></thead>
                 <tbody>
                     @foreach (var v in vehiculos)
                     {
@@ -38,8 +38,10 @@ else
                             <td>@v.Cliente</td><td>@v.Patente</td><td>@v.TipoVehiculo</td><td>@v.Marca</td><td>@v.Modelo</td><td>@v.Color</td>
                             <td>@(v.Activo ? "Activo" : "Desactivado")</td>
                             <td class="acciones-tabla">
-                                <button type="button" class="boton-icono secundario" title="Editar" aria-label="Editar vehículo" @onclick="() => Editar(v)">✎</button>
-                                <button type="button" class="boton-icono @(v.Activo ? "peligro" : "secundario")" title="@(v.Activo ? "Desactivar" : "Activar")" aria-label="@(v.Activo ? "Desactivar vehículo" : "Activar vehículo")" @onclick="() => CambiarEstado(v)">@(v.Activo ? "⏻" : "✓")</button>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <button type="button" class="btn btn-sm btn-outline-primary" title="Editar" aria-label="Editar vehículo" @onclick="() => Editar(v)"><i class="bi bi-pencil" aria-hidden="true"></i></button>
+                                    <button type="button" class="btn btn-sm @(v.Activo ? "btn-outline-warning" : "btn-outline-success")" title="@(v.Activo ? "Desactivar" : "Activar")" aria-label="@(v.Activo ? "Desactivar vehículo" : "Activar vehículo")" @onclick="() => CambiarEstado(v)"><i class="bi @(v.Activo ? "bi-slash-circle" : "bi-check-lg")" aria-hidden="true"></i></button>
+                                </div>
                             </td>
                         </tr>
                     }

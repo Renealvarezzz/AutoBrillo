@@ -39,36 +39,33 @@
             </div>
         </div>
 
-        <div class="campo-abm selector-tipos-producto">
-            <label>Tipos de producto</label>
-            <details class="desplegable-tipos-producto">
-                <summary>@TextoTiposSeleccionados</summary>
-                <div class="opciones-tipos-producto">
-                    @foreach (var tipo in tipos)
-                    {
-                        var seleccionado = TipoSeleccionado(tipo.Id_Tipos_Productos);
-                        <label class="opcion-tipo-producto @(seleccionado ? "seleccionada" : "")">
-                            <input type="checkbox" checked="@seleccionado" @onchange="() => CambiarTipo(tipo.Id_Tipos_Productos)" />
-                            <span>@tipo.Descripcion</span>
-                            <b aria-hidden="true">✓</b>
-                        </label>
-                    }
-                </div>
-            </details>
+        <div class="campo-abm selector-tipos">
+            <label id="etiqueta-tipos-producto">Tipos de producto</label>
+            <div class="lista-checks" role="group" aria-labelledby="etiqueta-tipos-producto">
+                @foreach (var tipo in tipos)
+                {
+                    var idTipo = tipo.Id_Tipos_Productos;
+                    var seleccionado = TipoSeleccionado(idTipo);
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="@($"tipo-producto-{idTipo}")" checked="@seleccionado" @onchange="() => CambiarTipo(idTipo)" />
+                        <label class="form-check-label" for="@($"tipo-producto-{idTipo}")">@tipo.Descripcion</label>
+                    </div>
+                }
+            </div>
             <small>Podés seleccionar uno o varios tipos.</small>
         </div>
 
         <div class="acciones-formulario">
-            <button @onclick="GuardarProducto">@(edicion.Id_Productos == 0 ? "Agregar producto" : "Guardar cambios")</button>
+            <button type="button" class="btn btn-primary" @onclick="GuardarProducto">@(edicion.Id_Productos == 0 ? "Agregar producto" : "Guardar cambios")</button>
             @if (edicion.Id_Productos != 0)
             {
-                <button class="secundario" @onclick="() => edicion = new()">Cancelar</button>
+                <button type="button" class="btn btn-outline-secondary" @onclick="() => edicion = new()">Cancelar</button>
             }
         </div>
 
         <TablaDatos Id="tabla-productos" Datos="productos">
                 <thead>
-                    <tr><th>Id</th><th>Descripción</th><th>Costo</th><th>Venta</th><th>Stock</th><th>Tipos</th><th>Estado</th><th>Acciones</th></tr>
+                    <tr><th>Id</th><th>Descripción</th><th>Costo</th><th>Venta</th><th>Stock</th><th>Tipos</th><th>Estado</th><th class="acciones-tabla">Acciones</th></tr>
                 </thead>
                 <tbody>
                     @foreach (var producto in productos)
@@ -82,9 +79,11 @@
                             <td>@string.Join(", ", producto.Tipos)</td>
                             <td>@(producto.Activo ? "Activo" : "Desactivado")</td>
                             <td class="acciones-tabla">
-                                <button class="boton-icono @(producto.Activo ? "peligro" : "secundario")" @onclick="() => CambiarEstado(producto)" title="@(producto.Activo ? "Desactivar" : "Activar")">@(producto.Activo ? "×" : "✓")</button>
-                                <button class="boton-icono secundario" @onclick="() => EditarProducto(producto)" title="Editar">✎</button>
-                                <button class="boton-icono peligro" @onclick="() => EliminarProducto(producto)" title="Eliminar">⌫</button>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <button type="button" class="btn btn-sm @(producto.Activo ? "btn-outline-warning" : "btn-outline-success")" @onclick="() => CambiarEstado(producto)" title="@(producto.Activo ? "Desactivar" : "Activar")" aria-label="@(producto.Activo ? "Desactivar producto" : "Activar producto")"><i class="bi @(producto.Activo ? "bi-slash-circle" : "bi-check-lg")" aria-hidden="true"></i></button>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" @onclick="() => EditarProducto(producto)" title="Editar" aria-label="Editar producto"><i class="bi bi-pencil" aria-hidden="true"></i></button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" @onclick="() => EliminarProducto(producto)" title="Eliminar" aria-label="Eliminar producto"><i class="bi bi-trash" aria-hidden="true"></i></button>
+                                </div>
                             </td>
                         </tr>
                     }
@@ -96,14 +95,14 @@
         <h2>Tipos de producto</h2>
         <div class="formulario-abm">
             <input @bind="tipoEdicion.Descripcion" placeholder="Ej.: Servicio" maxlength="100" />
-            <button @onclick="GuardarTipo">@(tipoEdicion.Id_Tipos_Productos == 0 ? "Agregar tipo" : "Guardar tipo")</button>
+            <button type="button" class="btn btn-primary" @onclick="GuardarTipo">@(tipoEdicion.Id_Tipos_Productos == 0 ? "Agregar tipo" : "Guardar tipo")</button>
             @if (tipoEdicion.Id_Tipos_Productos != 0)
             {
-                <button class="secundario" @onclick="() => tipoEdicion = new()">Cancelar</button>
+                <button type="button" class="btn btn-outline-secondary" @onclick="() => tipoEdicion = new()">Cancelar</button>
             }
         </div>
         <TablaDatos Id="tabla-tipos-productos" Datos="tipos">
-            <thead><tr><th>Id</th><th>Descripción</th><th>Acciones</th></tr></thead>
+            <thead><tr><th>Id</th><th>Descripción</th><th class="acciones-tabla">Acciones</th></tr></thead>
             <tbody>
                 @foreach (var tipo in tipos)
                 {
@@ -111,8 +110,10 @@
                         <td>@tipo.Id_Tipos_Productos</td>
                         <td>@tipo.Descripcion</td>
                         <td class="acciones-tabla">
-                            <button class="boton-icono secundario" @onclick="() => EditarTipo(tipo)">✎</button>
-                            <button class="boton-icono peligro" @onclick="() => EliminarTipo(tipo)">⌫</button>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <button type="button" class="btn btn-sm btn-outline-primary" @onclick="() => EditarTipo(tipo)" title="Editar" aria-label="Editar tipo de producto"><i class="bi bi-pencil" aria-hidden="true"></i></button>
+                                <button type="button" class="btn btn-sm btn-outline-danger" @onclick="() => EliminarTipo(tipo)" title="Eliminar" aria-label="Eliminar tipo de producto"><i class="bi bi-trash" aria-hidden="true"></i></button>
+                            </div>
                         </td>
                     </tr>
                 }
