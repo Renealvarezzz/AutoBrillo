@@ -1,0 +1,7 @@
+# EJEMPLO. No es el Caddyfile instalado en el VPS.
+# Muestra el mínimo para que Caddy termine HTTPS y reenvíe
+# api.autobrillo.tech al contenedor autobrillo-api.
+
+api.autobrillo.tech {
+	reverse_proxy 127.0.0.1:8080
+}

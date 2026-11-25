@@ -1,90 +1,110 @@
 # Arquitectura de AutoBrillo
 
-## Objetivo
-
-AutoBrillo usa una arquitectura por capas para separar responsabilidades sin complicar el código. Cada proyecto tiene una función puntual y se comunica con el siguiente de manera ordenada.
+Proyecto académico de la UPE (Paraguay). Cada capa tiene una responsabilidad y la siguiente no se salta.
 
 ```text
-AutoBrillo.Web → API HTTP/JSON → Repository → Model → PostgreSQL
+Navegador (Blazor WebAssembly en Vercel)
+  → HTTPS Caddy en el VPS Hostinger
+  → AutoBrillo.Api
+  → AutoBrillo.Repository (EF Core + Npgsql)
+  → session pooler de Supabase
+  → PostgreSQL
 ```
+
+## Despliegue
+
+```mermaid
+flowchart LR
+    W["Vercel<br/>Blazor WebAssembly<br/>AdminLTE 4.10.2 y DataTables 2.3.4"] -->|HTTPS| C["Caddy<br/>Hostinger VPS<br/>api.autobrillo.tech"]
+    C -->|127.0.0.1:8080| A["Contenedor autobrillo-api<br/>ASP.NET Core .NET 10"]
+    A --> R["AutoBrillo.Repository<br/>EF Core + Npgsql"]
+    R --> P["Session pooler<br/>aws-1-sa-east-1.pooler.supabase.com:5432"]
+    P --> DB[("PostgreSQL<br/>Supabase sa-east-1")]
+    G["GitHub Actions<br/>.github/workflows/build-test.yml"] -.-> W
+    G -.-> A
+```
+
+GitHub Actions no participa en la solicitud del usuario. La línea punteada marca el código que ese workflow compila y prueba, en cada pull request y en cada push a `main`. Vercel publica la web por su integración con el repositorio. El VPS se actualiza a mano, como se describe en [despliegue](despliegue.md).
+
+La web publicada está en https://autobrillo-lemon.vercel.app. Su `ApiUrl` es `https://api.autobrillo.tech/`. Caddy termina TLS. El contenedor solo escucha en el loopback del VPS.
 
 ## Capas
 
-### 1. AutoBrillo.Model
+### AutoBrillo.Model
 
-Contiene las entidades del sistema. No conoce la base de datos ni las pantallas.
+Entidades y reglas, sin conocer HTTP ni el proveedor de base de datos.
 
-Incluye entidades para `Usuario`, `Rol`, `Persona`, `TipoPersona`, `Producto` y `TipoProducto`.
+Entidades: `Usuario`, `Rol`, `Persona`, `TipoPersona`, `Producto`, `TipoProducto`, `TipoVehiculo`, `Vehiculo`, `PrecioServicio`, `ServicioInsumo`, `MovimientoStock`, `Compra`, `CompraDetalle`, `Lavado`, `LavadoServicio`, `LavadoParticipante`, `LavadoHistorialEstado`, `Venta`, `VentaDetalle`, `Cobro`, `ConfiguracionComision` y `Comision`.
 
-Las relaciones N:M entre personas/tipos y productos/tipos se configuran mediante tablas puente en la capa Repository. Los campos y reglas del modelo administrativo se detallan en [Personas, clientes y productos](personas-y-productos.md).
+Las reglas de negocio viven en `Reglas/`. Una `ReglaNegocioException` llega al cliente como HTTP 400 con `{ "mensaje": "..." }`.
 
-### 2. AutoBrillo.Repository
+### AutoBrillo.Repository
 
-Es la capa que se comunica con PostgreSQL usando Entity Framework Core.
+Entity Framework Core con el proveedor Npgsql. `AutoBrilloDbContext` mapea las tablas de `public`. Los repositorios cubren usuarios, roles, personas, productos, catálogos, vehículos, servicios, inventario, compras y las operaciones del sprint 3. `PasswordHasher` genera y verifica hashes BCrypt.
 
-Componentes principales:
+La cadena de conexión entra por la variable `CONNECTION_STRING`. En producción apunta al session pooler `aws-1-sa-east-1.pooler.supabase.com`, puerto 5432. El host directo de Supabase es solo IPv6 y el VPS no lo alcanza.
 
-- `Datos/AutoBrilloDbContext.cs`: configura usuarios, roles, personas, productos, catálogos de tipos y relaciones N:M.
-- Repositorios e interfaces para usuarios, roles, personas, tipos de persona, productos y tipos de producto.
-- `Seguridad/PasswordHasher.cs`: genera y verifica hashes BCrypt.
+### AutoBrillo.Api
 
-Esta separación permite reemplazar PostgreSQL por MariaDB en el futuro cambiando principalmente el proveedor de Entity Framework Core, sin modificar la web.
+ASP.NET Core sobre .NET 10. Expone JSON, firma y valida JWT, aplica CORS con `WEB_ORIGIN` y registra los repositorios en `Program.cs`.
 
-### 3. AutoBrillo.Api
+Roles usados por la API:
 
-Expone los datos y operaciones mediante HTTP/JSON.
+| Rol | Alcance |
+|---|---|
+| `Administrador` | Todo el sistema, altas de usuarios, anulaciones, precios y comisiones. |
+| `Supervisor` y `Caja` | Lavados, ventas y cobros. Leen vehículos, personas y productos. No anulan. |
+| `Stock` | Compras, movimientos de stock y lectura de personas y productos. |
 
-Responsabilidades:
+El token dura 8 horas e incluye el identificador, el nombre y los roles. En cada solicitud autenticada la API vuelve a leer el usuario: si está inactivo, el token deja de servir.
 
-- Registro e inicio de sesión.
-- Generación y validación de tokens JWT.
-- Política CORS para permitir solo el origen de la web publicada.
-- Endpoint de estado `/health`.
-- Inyección de dependencias de Repository y DbContext.
+### AutoBrillo.Web
 
-La API no envía hashes de contraseñas al cliente.
+Blazor WebAssembly. Corre en el navegador y llama a la API con `HttpClient`. No tiene cadena de conexión.
 
-### 4. AutoBrillo.Web
+La interfaz usa copias locales, declaradas en `wwwroot/index.html`:
 
-Es una aplicación Blazor WebAssembly. Se ejecuta en el navegador y usa `HttpClient` para comunicarse con la API.
+- AdminLTE 4.10.2, con Bootstrap 5.3.8 y Bootstrap Icons 1.13.1, en `wwwroot/lib`.
+- DataTables 2.3.4 y jQuery, también locales.
+- El componente `Shared/TablaDatos.razor` inicializa DataTables sobre los listados (`wwwroot/js/tablas.js`) sin romper los `@onclick` de Blazor.
 
-Pantallas administrativas relevantes:
+Pantallas: `Login`, `Inicio`, `Usuarios`, `Roles`, `Personas`, `Vehiculos`, `Productos`, `Servicios`, `Inventario`, `Compras`, `Lavados`, `Ventas` y `Comisiones`. El menú de `MainLayout` cambia según el rol.
 
-- `Login.razor`: formulario de acceso.
-- `Inicio.razor`: pantalla inicial protegida.
-- `Usuarios.razor` y `Roles.razor`: administración de accesos.
-- `Personas.razor`: registro de clientes, funcionarios y proveedores.
-- `Productos.razor`: registro de productos, servicios e insumos.
-- `Shared/MainLayout.razor`: navegación y cierre de sesión.
+### Pruebas
 
-Las pantallas administrativas validan la sesión y el rol `Administrador` antes de habilitar su contenido.
+`tests/AutoBrillo.Web.Tests` es un proyecto xUnit con 94 pruebas. Cubre reglas, seguridad de roles, RLS declarado en las migraciones y comportamiento de pantallas y repositorios. El workflow `.github/workflows/build-test.yml` ejecuta `dotnet build` y `dotnet test`.
 
-## Flujo de inicio de sesión
+## Recorrido de una solicitud
 
 ```mermaid
 sequenceDiagram
     participant U as Usuario
-    participant W as Web Blazor
+    participant W as Blazor en Vercel
+    participant C as Caddy
     participant A as API
     participant R as Repository
+    participant P as Session pooler
     participant DB as PostgreSQL
 
-    U->>W: Escribe nombre y contraseña
-    W->>A: POST /api/auth/login
+    U->>W: Nombre y contraseña
+    W->>C: POST /api/auth/login
+    C->>A: HTTP a 127.0.0.1:8080
     A->>R: Buscar usuario por nombre
-    R->>DB: Consulta tabla usuarios
-    DB-->>R: Usuario y hash BCrypt
-    R-->>A: Usuario encontrado
-    A->>A: Verifica contraseña con BCrypt
-    A-->>W: Token JWT y nombre
-    W->>W: Guarda sesión en localStorage
-    W-->>U: Muestra Inicio
+    R->>P: Npgsql
+    P->>DB: Consulta usuarios
+    DB-->>A: Usuario, hash y roles
+    A->>A: BCrypt y usuario activo
+    A-->>W: token, usuario, roles, esAdministrador
+    W->>W: localStorage
+    W-->>U: Inicio con el menú de su rol
 ```
 
-## Decisiones de diseño
+El mismo camino se usa después del login. La web agrega `Authorization: Bearer` y la API autoriza por rol antes de llamar al repositorio.
 
-- Se eligieron nombres en español para facilitar la lectura y defensa en clase.
-- No se utilizan microservicios, CQRS, MediatR ni capas adicionales.
-- No existe proyecto de pruebas por alcance académico definido.
-- La web no posee cadena de conexión ni acceso directo a Supabase.
-- Las credenciales se suministran por variables de entorno, no desde el código fuente.
+## Decisiones
+
+- Nombres y comentarios en español, para la defensa en la UPE.
+- Una API y una base. Sin microservicios, CQRS ni MediatR.
+- La web no habla con Supabase. RLS está habilitado en las tablas de `public` y no hay políticas para el rol anónimo.
+- Las migraciones se aplican a mano, en orden, en el SQL Editor. El historial de migraciones de Supabase queda vacío y la integración de GitHub con Supabase está desconectada a propósito.
+- Secretos solo por variables de entorno. Ver [despliegue](despliegue.md).

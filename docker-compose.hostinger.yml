@@ -1,8 +1,10 @@
+# Caddy, fuera de este archivo, termina HTTPS de api.autobrillo.tech
+# y reenvía el tráfico a 127.0.0.1:8080. Ver docs/Caddyfile.ejemplo.
 services:
   api:
     build:
       context: .
-      dockerfile: Dockerfile.vercel
+      dockerfile: Dockerfile.api
     container_name: autobrillo-api
     restart: unless-stopped
     env_file:
@@ -11,9 +13,3 @@ services:
       TZ: America/Asuncion
     ports:
       - "127.0.0.1:8080:8080"
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.autobrillo-api.rule=Host(`api.autobrillo.tech`)"
-      - "traefik.http.routers.autobrillo-api.entrypoints=websecure"
-      - "traefik.http.routers.autobrillo-api.tls.certresolver=letsencrypt"
-      - "traefik.http.services.autobrillo-api.loadbalancer.server.port=8080"
