@@ -22,21 +22,19 @@ else
         <div class="acciones-formulario"><button @onclick="Registrar">Registrar compra</button></div>
 
         <h2>Historial</h2>
-        <div class="tabla-contenedor">
-            <table>
+        <TablaDatos Id="tabla-compras" Datos="compras">
                 <thead><tr><th>#</th><th>Fecha</th><th>Proveedor</th><th>Comprobante</th><th>Detalle</th><th>Total</th><th>Estado</th><th></th></tr></thead>
                 <tbody>
                     @foreach (var c in compras)
                     {
                         <tr>
-                            <td>@c.Id_Compras</td><td>@Fecha(c.Fecha)</td><td>@c.Proveedor</td><td>@c.Comprobante</td>
-                            <td>@string.Join(", ", c.Detalles.Select(d => $"{Gs(d.Cantidad)} x {d.Producto}"))</td><td>@Gs(c.Total)</td>
+                            <td>@c.Id_Compras</td><td data-order="@c.Fecha.ToString("yyyyMMddHHmmss")">@Fecha(c.Fecha)</td><td>@c.Proveedor</td><td>@c.Comprobante</td>
+                            <td>@string.Join(", ", c.Detalles.Select(d => $"{Gs(d.Cantidad)} x {d.Producto}"))</td><td data-order="@c.Total.ToString(System.Globalization.CultureInfo.InvariantCulture)">@Gs(c.Total)</td>
                             <td><span class="estado-chip @(c.Estado == "Anulada" ? "alerta" : "ok")" title="@c.MotivoAnulacion">@c.Estado</span></td>
                             <td>@if (esAdministrador && c.Estado != "Anulada") { <button class="peligro" @onclick="() => Anular(c)">Anular</button> }</td>
                         </tr>
                     }
                 </tbody>
-            </table>
-        </div>
+        </TablaDatos>
     </div>
 }

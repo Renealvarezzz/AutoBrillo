@@ -23,14 +23,13 @@ else
             <div class="campo-abm"><label>Precio (Gs.)</label><input type="number" min="0" step="1" @bind="precio" /></div>
         </div>
         <div class="acciones-formulario"><button @onclick="GuardarPrecio">Guardar precio</button></div>
-        <div class="tabla-contenedor">
-            <table>
+        <TablaDatos Id="tabla-precios" Datos="precios">
                 <thead><tr><th>Servicio</th><th>Tipo de vehículo</th><th>Precio</th><th>Actualizado</th><th>Acciones</th></tr></thead>
                 <tbody>
                     @foreach (var p in precios)
                     {
                         <tr>
-                            <td>@p.Producto</td><td>@p.TipoVehiculo</td><td>@Gs(p.Precio)</td><td>@Fecha(p.FechaActualizacion)</td>
+                            <td>@p.Producto</td><td>@p.TipoVehiculo</td><td data-order="@p.Precio.ToString(System.Globalization.CultureInfo.InvariantCulture)">@Gs(p.Precio)</td><td data-order="@p.FechaActualizacion.ToString("yyyyMMddHHmmss")">@Fecha(p.FechaActualizacion)</td>
                             <td class="acciones-tabla">
                                 <button type="button" class="boton-icono secundario" title="Editar" aria-label="Editar precio" @onclick="() => EditarPrecio(p)">✎</button>
                                 <button type="button" class="boton-icono peligro" title="Eliminar" aria-label="Eliminar precio" @onclick="() => EliminarPrecio(p)">✕</button>
@@ -38,8 +37,7 @@ else
                         </tr>
                     }
                 </tbody>
-            </table>
-        </div>
+        </TablaDatos>
     </div>
 
     <div class="panel-abm separador-panel">
@@ -49,7 +47,7 @@ else
             <button @onclick="GuardarTipo">@(tipoEdicion.Id_Tipos_Vehiculos == 0 ? "Agregar tipo" : "Guardar tipo")</button>
             @if (tipoEdicion.Id_Tipos_Vehiculos != 0) { <button class="secundario" @onclick="() => tipoEdicion = new()">Cancelar</button> }
         </div>
-        <table>
+        <TablaDatos Id="tabla-tipos-vehiculos" Datos="tipos">
             <thead><tr><th>Descripción</th><th>Estado</th><th>Acciones</th></tr></thead>
             <tbody>
                 @foreach (var t in tipos)
@@ -63,7 +61,7 @@ else
                     </tr>
                 }
             </tbody>
-        </table>
+        </TablaDatos>
     </div>
 
     <div class="panel-abm separador-panel">
@@ -76,18 +74,18 @@ else
         <div class="acciones-formulario"><button @onclick="GuardarAdicional">@(idAdicional == 0 ? "Agregar adicional" : "Guardar adicional")</button>
             @if (idAdicional != 0) { <button class="secundario" @onclick="LimpiarAdicional">Cancelar</button> }
         </div>
-        <table>
+        <TablaDatos Id="tabla-adicionales" Datos="productos">
             <thead><tr><th>Adicional</th><th>Precio de venta</th><th>Estado</th><th></th></tr></thead>
             <tbody>
                 @foreach (var a in adicionales)
                 {
                     <tr>
-                        <td>@a.Descripcion</td><td>@Gs(a.PrecioDeVenta)</td><td>@(a.Activo ? "Activo" : "Desactivado")</td>
+                        <td>@a.Descripcion</td><td data-order="@a.PrecioDeVenta.ToString(System.Globalization.CultureInfo.InvariantCulture)">@Gs(a.PrecioDeVenta)</td><td>@(a.Activo ? "Activo" : "Desactivado")</td>
                         <td><button type="button" class="boton-icono secundario" title="Editar" aria-label="Editar adicional" @onclick="() => EditarAdicional(a)">✎</button></td>
                     </tr>
                 }
             </tbody>
-        </table>
+        </TablaDatos>
     </div>
 
     <div class="panel-abm separador-panel">
@@ -105,18 +103,18 @@ else
             <div class="campo-abm"><label>Cantidad</label><input type="number" min="1" step="1" @bind="cantidadInsumo" /></div>
         </div>
         <div class="acciones-formulario"><button @onclick="GuardarInsumo">Guardar configuración</button></div>
-        <table>
+        <TablaDatos Id="tabla-insumos" Datos="configuracion">
             <thead><tr><th>Servicio</th><th>Insumo</th><th>Cantidad</th><th></th></tr></thead>
             <tbody>
                 @foreach (var fila in configuracion)
                 {
                     <tr>
-                        <td>@fila.Servicio</td><td>@fila.Insumo</td><td>@Gs(fila.Cantidad)</td>
+                        <td>@fila.Servicio</td><td>@fila.Insumo</td><td data-order="@fila.Cantidad.ToString(System.Globalization.CultureInfo.InvariantCulture)">@Gs(fila.Cantidad)</td>
                         <td><button type="button" class="boton-icono peligro" title="Quitar" aria-label="Quitar insumo del servicio" @onclick="() => QuitarInsumo(fila)">✕</button></td>
                     </tr>
                 }
             </tbody>
-        </table>
+        </TablaDatos>
     </div>
 
     <div class="panel-abm separador-panel">

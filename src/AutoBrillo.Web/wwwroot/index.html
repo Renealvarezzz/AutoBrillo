@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-bs-theme="light" data-lte-color-mode="off">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -12,13 +12,26 @@
     <meta property="og:locale" content="es_PY" />
     <title>AutoBrillo</title>
     <base href="/" />
+    <!-- AdminLTE 4.10.2 (MIT) + Bootstrap 5.3.8 + Bootstrap Icons 1.13.1, copias locales. -->
+    <link rel="stylesheet" href="lib/bootstrap/bootstrap.min.css" />
+    <link rel="stylesheet" href="lib/admin-lte/adminlte.min.css" />
+    <link rel="stylesheet" href="lib/bootstrap-icons/bootstrap-icons.min.css" />
+    <!-- DataTables 2.3.4 (MIT) con estilo Bootstrap 5. -->
+    <link rel="stylesheet" href="lib/datatables/dataTables.bootstrap5.min.css" />
     <link rel="stylesheet" href="css/app.css" />
     <link rel="stylesheet" href="css/usuarios.css" />
+    <link rel="stylesheet" href="css/adminlte-autobrillo.css" />
     <script type="importmap"></script>
 </head>
 <body>
     <div id="app"><div class="cargando">Cargando AutoBrillo...</div></div>
     <div id="blazor-error-ui">Ocurrió un error. <a href=".">Recargar</a></div>
+    <script src="lib/jquery/jquery.min.js"></script>
+    <script src="lib/bootstrap/bootstrap.bundle.min.js"></script>
+    <script src="lib/admin-lte/adminlte.min.js"></script>
+    <script src="lib/datatables/dataTables.min.js"></script>
+    <script src="lib/datatables/dataTables.bootstrap5.min.js"></script>
+    <script src="js/tablas.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="js/alertas.js"></script>
     <script src="_framework/blazor.webassembly.js"></script>

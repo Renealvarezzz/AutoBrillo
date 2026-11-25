@@ -1,0 +1,78 @@
+/* Ajustes para convivir AdminLTE/Bootstrap/DataTables con el CSS existente de AutoBrillo. */
+
+body.autobrillo-sesion {
+    background: #f4f6f9;
+}
+
+body.autobrillo-sesion .app-content.content-wrapper {
+    padding: 0.75rem 0 1.75rem;
+}
+
+body.autobrillo-sesion .panel-abm {
+    margin-bottom: 1rem;
+    border: 0;
+    border-radius: 0.5rem;
+    background: #fff;
+    box-shadow: 0 0 1px rgba(0, 0, 0, 0.13), 0 1px 3px rgba(0, 0, 0, 0.18);
+}
+
+body.autobrillo-sesion .hero {
+    margin-bottom: 0;
+}
+
+.marca-brillo {
+    color: #5de4ed;
+}
+
+button.nav-link {
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+}
+
+.boton-salir {
+    border: 1px solid #5de4ed;
+    border-radius: 99px;
+    padding: 0.35rem 0.85rem;
+    color: var(--azul-profundo, #023e8a);
+    background: transparent;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.sesion-usuario {
+    color: var(--azul-profundo, #023e8a);
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.app-sidebar .nav-header {
+    padding: 0.75rem 1rem 0.35rem;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+}
+
+/* DataTables inserta el buscador y el selector de página dentro del panel.
+   El CSS de AutoBrillo pone width:100% a input y select; acá se recupera el tamaño del control. */
+body.autobrillo-sesion .dt-container .dt-search input,
+body.autobrillo-sesion .dt-container .dt-length select,
+body.autobrillo-sesion .dt-container .dt-input {
+    width: auto;
+    display: inline-block;
+    margin: 0 0.35rem 0 0;
+    padding: 0.35rem 0.6rem;
+}
+
+body.autobrillo-sesion .dt-container {
+    margin-top: 0.5rem;
+}
+
+body.autobrillo-sesion .tabla-contenedor {
+    overflow-x: auto;
+}
+
+body.autobrillo-sesion table.dataTable button {
+    margin: 0 0.15rem;
+}

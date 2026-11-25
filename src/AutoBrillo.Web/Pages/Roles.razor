@@ -23,7 +23,7 @@
                 <button class="secundario" @onclick="Cancelar">Cancelar</button>
             }
         </div>
-        <table>
+        <TablaDatos Id="tabla-roles" Datos="roles">
             <thead><tr><th>Id</th><th>Descripción</th><th>Acciones</th></tr></thead>
             <tbody>
                 @foreach (var rol in roles)
@@ -42,6 +42,6 @@
                     </tr>
                 }
             </tbody>
-        </table>
+        </TablaDatos>
     </div>
 }

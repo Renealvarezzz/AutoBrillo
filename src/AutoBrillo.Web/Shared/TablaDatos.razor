@@ -1,0 +1,89 @@
+@implements IDisposable
+@inject IJSRuntime JS
+@using Microsoft.JSInterop
+
+@*
+    Listado con DataTables (búsqueda, orden, paginación, textos en español).
+
+    DataTables envuelve la tabla y reordena o retira filas del DOM. Si Blazor
+    vuelve a dibujar ese HTML mientras el plugin está activo, el diff no
+    encuentra los nodos y se rompen los @onclick de editar, activar, anular, etc.
+
+    Patrón seguro:
+    1. La tabla solo se vuelve a dibujar cuando cambia la referencia de Datos.
+       Las pantallas reemplazan la lista al recargar; un cambio del formulario
+       (misma lista) no toca el DOM de la tabla y conserva búsqueda, página y orden.
+    2. Antes de ese dibujo —en OnParametersSet, que corre antes del render que
+       dispara StateHasChanged— se destruye DataTables de forma sincrónica para
+       restaurar el DOM que Blazor conoce.
+    3. OnAfterRender vuelve a inicializar el plugin sobre el HTML nuevo.
+*@
+<div class="tabla-contenedor">
+    <table id="@Id" class="table table-striped table-hover table-bordered w-100 tabla-listado">
+        @ChildContent
+    </table>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Id { get; set; } = "";
+    [Parameter] public object? Datos { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private object? _datosEnDom;
+    private bool _inicializada;
+    private bool _pendienteInicio = true;
+    private bool _debeRenderizar = true;
+
+    protected override void OnParametersSet()
+    {
+        if (_inicializada && !ReferenceEquals(_datosEnDom, Datos))
+        {
+            Destruir();
+            _inicializada = false;
+            _pendienteInicio = true;
+            _debeRenderizar = true;
+            _datosEnDom = Datos;
+            return;
+        }
+
+        if (!_inicializada)
+        {
+            _pendienteInicio = true;
+            _debeRenderizar = true;
+            _datosEnDom = Datos;
+            return;
+        }
+
+        _debeRenderizar = false;
+    }
+
+    protected override bool ShouldRender() => _debeRenderizar;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (!_pendienteInicio || _inicializada) return;
+        if (JS is not IJSInProcessRuntime sincrono) return;
+
+        try
+        {
+            sincrono.InvokeVoid("abTablas.iniciar", Id);
+            _inicializada = true;
+            _pendienteInicio = false;
+            _debeRenderizar = false;
+        }
+        catch (JSException)
+        {
+            _pendienteInicio = true;
+        }
+    }
+
+    private void Destruir()
+    {
+        if (JS is not IJSInProcessRuntime sincrono) return;
+        try { sincrono.InvokeVoid("abTablas.destruir", Id); }
+        catch (JSException) { }
+        catch (InvalidOperationException) { }
+    }
+
+    public void Dispose() => Destruir();
+}

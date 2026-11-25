@@ -33,16 +33,14 @@ else
                 @foreach (var p in productos) { <option value="@p.Id_Productos">@p.Descripcion</option> }
             </select>
         </div>
-        <div class="tabla-contenedor">
-            <table>
+        <TablaDatos Id="tabla-inventario" Datos="movimientos">
                 <thead><tr><th>Fecha</th><th>Producto</th><th>Tipo</th><th>Origen</th><th>Cantidad</th><th>Stock resultante</th><th>Ref.</th><th>Observación</th></tr></thead>
                 <tbody>
                     @foreach (var m in movimientos)
                     {
-                        <tr><td>@Fecha(m.Fecha)</td><td>@m.Producto</td><td><span class="estado-chip @(m.Tipo == "Entrada" ? "ok" : "alerta")">@m.Tipo</span></td><td>@m.Origen</td><td>@Gs(m.Cantidad)</td><td>@Gs(m.StockResultante)</td><td>@m.Id_Referencia</td><td>@m.Observacion</td></tr>
+                        <tr><td data-order="@m.Fecha.ToString("yyyyMMddHHmmss")">@Fecha(m.Fecha)</td><td>@m.Producto</td><td><span class="estado-chip @(m.Tipo == "Entrada" ? "ok" : "alerta")">@m.Tipo</span></td><td>@m.Origen</td><td data-order="@m.Cantidad.ToString(System.Globalization.CultureInfo.InvariantCulture)">@Gs(m.Cantidad)</td><td data-order="@m.StockResultante.ToString(System.Globalization.CultureInfo.InvariantCulture)">@Gs(m.StockResultante)</td><td>@m.Id_Referencia</td><td>@m.Observacion</td></tr>
                     }
                 </tbody>
-            </table>
-        </div>
+        </TablaDatos>
     </div>
 }
