@@ -51,8 +51,7 @@
             }
         </div>
 
-        <div class="tabla-contenedor">
-            <table>
+        <TablaDatos Id="tabla-personas" Datos="personas">
                 <thead><tr><th>Id</th><th>Nombre</th><th>Documento</th><th>Teléfono</th><th>Tipos</th><th>Estado</th><th>Acciones</th></tr></thead>
                 <tbody>
                     @foreach (var persona in personas)
@@ -72,8 +71,7 @@
                         </tr>
                     }
                 </tbody>
-            </table>
-        </div>
+        </TablaDatos>
     </div>
 
     <div class="panel-abm" style="margin-top:1rem">
@@ -86,7 +84,7 @@
                 <button class="secundario" @onclick="() => tipoEdicion = new()">Cancelar</button>
             }
         </div>
-        <table>
+        <TablaDatos Id="tabla-tipos-personas" Datos="tipos">
             <thead><tr><th>Id</th><th>Descripción</th><th>Acciones</th></tr></thead>
             <tbody>
                 @foreach (var tipo in tipos)
@@ -101,6 +99,6 @@
                     </tr>
                 }
             </tbody>
-        </table>
+        </TablaDatos>
     </div>
 }

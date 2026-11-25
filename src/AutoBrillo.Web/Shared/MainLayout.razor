@@ -1,29 +1,162 @@
 @inherits LayoutComponentBase
 @inject ServicioAutenticacion Autenticacion
 @inject NavigationManager Navegacion
+@inject IJSRuntime JS
 
-@* Diseño compartido: rodea cada página con la barra superior y el área central. *@
-<div class="pagina">
-    <header class="barra-superior">
-        <a class="marca" href="inicio">Auto<span>Brillo</span></a>
-        @if (!string.IsNullOrWhiteSpace(usuario))
-        {
-            @* El botón ejecuta Salir, definido en MainLayout.razor.cs. *@
-            @if (esAdministrador)
-            {
-                <nav class="menu"><a href="roles">Roles</a><a href="usuarios">Usuarios</a><a href="personas">Personas</a><a href="vehiculos">Vehículos</a><a href="productos">Productos</a><a href="servicios">Servicios</a><a href="inventario">Inventario</a><a href="compras">Compras</a></nav>
-            }
-            else if (esStock)
-            {
-                <nav class="menu"><a href="inventario">Inventario</a><a href="compras">Compras</a></nav>
-            }
-            @if (esOperacion)
-            {
-                <nav class="menu"><a href="lavados">Lavados</a><a href="ventas">Ventas</a>@if (esAdministrador) { <a href="comisiones">Comisiones</a> }</nav>
-            }
-            <div class="sesion"><span>Hola, @usuario</span><button @onclick="Salir">Salir</button></div>
-        }
-    </header>
-    @* @Body es el lugar donde Blazor inserta Login, Inicio u otra página. *@
-    <main class="contenido">@Body</main>
-</div>
+@if (!sesionLista)
+{
+    <div class="pagina"><p class="cargando">Cargando AutoBrillo...</p></div>
+}
+else if (string.IsNullOrWhiteSpace(usuario))
+{
+    @* Sin sesión se conserva el acceso actual: marca y tarjeta de login. *@
+    <div class="pagina">
+        <header class="barra-superior">
+            <a class="marca" href="inicio">Auto<span>Brillo</span></a>
+        </header>
+        <main class="contenido">@Body</main>
+    </div>
+}
+else
+{
+    <div class="app-wrapper">
+        <nav class="app-header navbar navbar-expand bg-body">
+            <div class="container-fluid">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <button type="button" class="nav-link" data-lte-toggle="sidebar" aria-label="Mostrar u ocultar el menú">
+                            <i class="bi bi-list" aria-hidden="true"></i>
+                        </button>
+                    </li>
+                </ul>
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item sesion-usuario">Hola, @usuario</li>
+                    <li class="nav-item">
+                        <button type="button" class="boton-salir" @onclick="Salir">Salir</button>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <aside class="app-sidebar bg-body-secondary shadow" data-bs-theme="dark">
+            <div class="sidebar-brand">
+                <a href="inicio" class="brand-link">
+                    <span class="brand-text fw-light">Auto<span class="marca-brillo">Brillo</span></span>
+                </a>
+            </div>
+            <div class="sidebar-wrapper">
+                <nav class="mt-2" aria-label="Menú principal">
+                    <ul class="nav sidebar-menu flex-column" data-lte-toggle="treeview" data-accordion="false" id="navigation" role="menu">
+                        <li class="nav-item">
+                            <NavLink href="inicio" class="nav-link" Match="NavLinkMatch.All">
+                                <i class="nav-icon bi bi-speedometer2" aria-hidden="true"></i>
+                                <p>Inicio</p>
+                            </NavLink>
+                        </li>
+                        @if (esOperacion)
+                        {
+                            <li class="nav-header">OPERACIÓN</li>
+                            <li class="nav-item">
+                                <NavLink href="lavados" class="nav-link" Match="NavLinkMatch.All">
+                                    <i class="nav-icon bi bi-droplet" aria-hidden="true"></i>
+                                    <p>Lavados</p>
+                                </NavLink>
+                            </li>
+                            <li class="nav-item">
+                                <NavLink href="ventas" class="nav-link" Match="NavLinkMatch.All">
+                                    <i class="nav-icon bi bi-cash-coin" aria-hidden="true"></i>
+                                    <p>Ventas</p>
+                                </NavLink>
+                            </li>
+                            @if (esAdministrador)
+                            {
+                                <li class="nav-item">
+                                    <NavLink href="comisiones" class="nav-link" Match="NavLinkMatch.All">
+                                        <i class="nav-icon bi bi-percent" aria-hidden="true"></i>
+                                        <p>Comisiones</p>
+                                    </NavLink>
+                                </li>
+                            }
+                        }
+                        @if (esAdministrador)
+                        {
+                            <li class="nav-header">ADMINISTRACIÓN</li>
+                            <li class="nav-item">
+                                <NavLink href="roles" class="nav-link" Match="NavLinkMatch.All">
+                                    <i class="nav-icon bi bi-person-badge" aria-hidden="true"></i>
+                                    <p>Roles</p>
+                                </NavLink>
+                            </li>
+                            <li class="nav-item">
+                                <NavLink href="usuarios" class="nav-link" Match="NavLinkMatch.All">
+                                    <i class="nav-icon bi bi-people" aria-hidden="true"></i>
+                                    <p>Usuarios</p>
+                                </NavLink>
+                            </li>
+                            <li class="nav-item">
+                                <NavLink href="personas" class="nav-link" Match="NavLinkMatch.All">
+                                    <i class="nav-icon bi bi-person-vcard" aria-hidden="true"></i>
+                                    <p>Personas</p>
+                                </NavLink>
+                            </li>
+                            <li class="nav-item">
+                                <NavLink href="vehiculos" class="nav-link" Match="NavLinkMatch.All">
+                                    <i class="nav-icon bi bi-car-front" aria-hidden="true"></i>
+                                    <p>Vehículos</p>
+                                </NavLink>
+                            </li>
+                            <li class="nav-item">
+                                <NavLink href="productos" class="nav-link" Match="NavLinkMatch.All">
+                                    <i class="nav-icon bi bi-box-seam" aria-hidden="true"></i>
+                                    <p>Productos</p>
+                                </NavLink>
+                            </li>
+                            <li class="nav-item">
+                                <NavLink href="servicios" class="nav-link" Match="NavLinkMatch.All">
+                                    <i class="nav-icon bi bi-tags" aria-hidden="true"></i>
+                                    <p>Servicios</p>
+                                </NavLink>
+                            </li>
+                            <li class="nav-item">
+                                <NavLink href="inventario" class="nav-link" Match="NavLinkMatch.All">
+                                    <i class="nav-icon bi bi-boxes" aria-hidden="true"></i>
+                                    <p>Inventario</p>
+                                </NavLink>
+                            </li>
+                            <li class="nav-item">
+                                <NavLink href="compras" class="nav-link" Match="NavLinkMatch.All">
+                                    <i class="nav-icon bi bi-cart" aria-hidden="true"></i>
+                                    <p>Compras</p>
+                                </NavLink>
+                            </li>
+                        }
+                        else if (esStock)
+                        {
+                            <li class="nav-header">STOCK</li>
+                            <li class="nav-item">
+                                <NavLink href="inventario" class="nav-link" Match="NavLinkMatch.All">
+                                    <i class="nav-icon bi bi-boxes" aria-hidden="true"></i>
+                                    <p>Inventario</p>
+                                </NavLink>
+                            </li>
+                            <li class="nav-item">
+                                <NavLink href="compras" class="nav-link" Match="NavLinkMatch.All">
+                                    <i class="nav-icon bi bi-cart" aria-hidden="true"></i>
+                                    <p>Compras</p>
+                                </NavLink>
+                            </li>
+                        }
+                    </ul>
+                </nav>
+            </div>
+        </aside>
+
+        <main class="app-main" id="main">
+            <div class="app-content content-wrapper">
+                <div class="container-fluid">
+                    @Body
+                </div>
+            </div>
+        </main>
+    </div>
+}

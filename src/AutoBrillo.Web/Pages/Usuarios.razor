@@ -107,8 +107,7 @@
             }
         </div>
 
-        <div class="tabla-contenedor">
-            <table>
+        <TablaDatos Id="tabla-usuarios" Datos="usuarios">
                 <thead><tr><th>Id</th><th>Usuario</th><th>Persona</th><th>Roles asignados</th><th>Estado</th><th>Acciones</th></tr></thead>
                 <tbody>
                     @foreach (var usuario in usuarios)
@@ -143,7 +142,6 @@
                         </tr>
                     }
                 </tbody>
-            </table>
-        </div>
+        </TablaDatos>
     </div>
 }

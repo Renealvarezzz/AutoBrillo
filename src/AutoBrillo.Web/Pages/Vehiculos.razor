@@ -29,8 +29,7 @@ else
             <button @onclick="Guardar">@(idVehiculo == 0 ? "Agregar vehículo" : "Guardar vehículo")</button>
             @if (idVehiculo != 0) { <button class="secundario" @onclick="Limpiar">Cancelar</button> }
         </div>
-        <div class="tabla-contenedor">
-            <table>
+        <TablaDatos Id="tabla-vehiculos" Datos="vehiculos">
                 <thead><tr><th>Cliente</th><th>Patente</th><th>Tipo</th><th>Marca</th><th>Modelo</th><th>Color</th><th>Estado</th><th>Acciones</th></tr></thead>
                 <tbody>
                     @foreach (var v in vehiculos)
@@ -45,7 +44,6 @@ else
                         </tr>
                     }
                 </tbody>
-            </table>
-        </div>
+        </TablaDatos>
     </div>
 }
