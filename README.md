@@ -27,7 +27,7 @@ Sistema académico de la UPE (Paraguay) para la gestión de un lavadero de autos
 - ABM de usuarios, roles, personas (cliente, funcionario, proveedor) y productos.
 - Vehículos, tipos de vehículo, servicios, precios por tipo (con historial y fila `Vigente`) y adicionales.
 - Inventario, compras a proveedores, lavados, ventas, cobros y comisiones.
-- Interfaz Blazor WebAssembly con AdminLTE 4.10.2 y DataTables 2.3.4, copias locales en `wwwroot/lib`. Los listados usan el componente `TablaDatos`.
+- Interfaz Blazor WebAssembly con AdminLTE 4.10.2 y DataTables 2.3.4, copias locales en `wwwroot/lib`. Los listados usan el componente `TablaDatos`. Los tipos de persona y de producto se marcan con casillas visibles, y las acciones de las tablas son botones compactos en una sola línea.
 - Comprobación de la API con `/health` y de la base con `/health/base-datos`.
 
 ## Arquitectura publicada
@@ -53,7 +53,7 @@ La web no se conecta a Supabase. Cada solicitud autenticada recorre Web, API, Re
 | `AutoBrillo.Repository` | Entity Framework Core y Npgsql. Hash BCrypt. |
 | `AutoBrillo.Api` | HTTP/JSON, JWT, CORS y los controladores. |
 | `AutoBrillo.Web` | Blazor WebAssembly. Consume solo la API. |
-| `tests/AutoBrillo.Web.Tests` | 94 pruebas xUnit. Las ejecuta GitHub Actions. |
+| `tests/AutoBrillo.Web.Tests` | 99 pruebas xUnit. Las ejecuta GitHub Actions. |
 
 ## Ejecución local
 

@@ -26,7 +26,7 @@ else
             <div class="campo-abm"><label>Cantidad</label><input type="number" min="1" step="1" @bind="nuevo.Cantidad" /></div>
             <div class="campo-abm"><label>Observación</label><input maxlength="250" @bind="nuevo.Observacion" placeholder="Opcional" /></div>
         </div>
-        <div class="acciones-formulario"><button @onclick="Registrar">Registrar movimiento</button></div>
+        <div class="acciones-formulario"><button type="button" class="btn btn-primary" @onclick="Registrar">Registrar movimiento</button></div>
 
         <div class="formulario-abm">
             <select @bind="filtroProducto" @bind:after="CargarAsync"><option value="0">Todos los productos</option>

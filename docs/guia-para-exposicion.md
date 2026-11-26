@@ -54,6 +54,8 @@ Las librerías no se bajan de un CDN en el momento de usar la pantalla. Están c
 
 `TablaDatos` envuelve la tabla HTML. DataTables aporta búsqueda, orden y paginación en español. El componente destruye el plugin antes de que Blazor vuelva a dibujar las filas, para que los botones de editar, activar o anular sigan funcionando. La lógica de JavaScript está en `wwwroot/js/tablas.js`.
 
+Los tipos de persona y de producto se eligen con casillas siempre visibles, no con un desplegable. Los roles de usuario siguen como tarjetas. La columna Acciones de las tablas usa botones chicos (`btn-sm`) en un solo grupo, en una línea, con ícono y nombre accesible.
+
 ## Recorrido completo de una solicitud
 
 ```mermaid

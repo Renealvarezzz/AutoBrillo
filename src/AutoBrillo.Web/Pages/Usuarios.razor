@@ -100,15 +100,15 @@
         </div>
 
         <div class="acciones-formulario">
-            <button @onclick="Guardar">@(edicion.Id_Usuarios == 0 ? "Crear usuario" : "Guardar cambios")</button>
+            <button type="button" class="btn btn-primary" @onclick="Guardar">@(edicion.Id_Usuarios == 0 ? "Crear usuario" : "Guardar cambios")</button>
             @if (edicion.Id_Usuarios != 0)
             {
-                <button class="secundario" @onclick="Cancelar">Cancelar edición</button>
+                <button type="button" class="btn btn-outline-secondary" @onclick="Cancelar">Cancelar edición</button>
             }
         </div>
 
         <TablaDatos Id="tabla-usuarios" Datos="usuarios">
-                <thead><tr><th>Id</th><th>Usuario</th><th>Persona</th><th>Roles asignados</th><th>Estado</th><th>Acciones</th></tr></thead>
+                <thead><tr><th>Id</th><th>Usuario</th><th>Persona</th><th>Roles asignados</th><th>Estado</th><th class="acciones-tabla">Acciones</th></tr></thead>
                 <tbody>
                     @foreach (var usuario in usuarios)
                     {
@@ -119,25 +119,20 @@
                             <td>@string.Join(", ", usuario.Roles)</td>
                             <td>@(usuario.Activo ? "Activo" : "Desactivado")</td>
                             <td class="acciones-tabla">
-                                <button type="button" class="boton-icono @(usuario.Activo ? "peligro" : "secundario")" @onclick="() => CambiarEstado(usuario)" aria-label="@(usuario.Activo ? "Desactivar usuario" : "Activar usuario")" title="@(usuario.Activo ? "Desactivar usuario" : "Activar usuario")">
-                                    @if (usuario.Activo)
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <button type="button" class="btn btn-sm @(usuario.Activo ? "btn-outline-warning" : "btn-outline-success")" @onclick="() => CambiarEstado(usuario)" aria-label="@(usuario.Activo ? "Desactivar usuario" : "Activar usuario")" title="@(usuario.Activo ? "Desactivar usuario" : "Activar usuario")">
+                                        <i class="bi @(usuario.Activo ? "bi-slash-circle" : "bi-check-lg")" aria-hidden="true"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" @onclick="() => Editar(usuario)" aria-label="Editar usuario" title="Editar usuario">
+                                        <i class="bi bi-pencil" aria-hidden="true"></i>
+                                    </button>
+                                    @if (usuario.Id_Usuarios != idSesion)
                                     {
-                                        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M9 9l6 6M15 9l-6 6" /></svg>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" @onclick="() => Eliminar(usuario)" aria-label="Eliminar usuario" title="Eliminar usuario">
+                                            <i class="bi bi-trash" aria-hidden="true"></i>
+                                        </button>
                                     }
-                                    else
-                                    {
-                                        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="m8 12 2.5 2.5L16 9" /></svg>
-                                    }
-                                </button>
-                                <button type="button" class="boton-icono secundario" @onclick="() => Editar(usuario)" aria-label="Editar usuario" title="Editar usuario">
-                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4l10-10-4-4L4 16v4Z" /><path d="m12.5 7.5 4 4" /></svg>
-                                </button>
-                                @if (usuario.Id_Usuarios != idSesion)
-                                {
-                                <button type="button" class="boton-icono peligro" @onclick="() => Eliminar(usuario)" aria-label="Eliminar usuario" title="Eliminar usuario">
-                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16" /><path d="M9 7V4h6v3" /><path d="M6 7l1 13h10l1-13" /><path d="M10 11v5M14 11v5" /></svg>
-                                </button>
-                                }
+                                </div>
                             </td>
                         </tr>
                     }

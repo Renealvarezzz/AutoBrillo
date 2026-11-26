@@ -67,12 +67,13 @@ La interfaz usa copias locales, declaradas en `wwwroot/index.html`:
 - AdminLTE 4.10.2, con Bootstrap 5.3.8 y Bootstrap Icons 1.13.1, en `wwwroot/lib`.
 - DataTables 2.3.4 y jQuery, también locales.
 - El componente `Shared/TablaDatos.razor` inicializa DataTables sobre los listados (`wwwroot/js/tablas.js`) sin romper los `@onclick` de Blazor.
+- Los tipos de persona y de producto se marcan con casillas siempre visibles. La columna Acciones usa botones compactos en una sola línea.
 
 Pantallas: `Login`, `Inicio`, `Usuarios`, `Roles`, `Personas`, `Vehiculos`, `Productos`, `Servicios`, `Inventario`, `Compras`, `Lavados`, `Ventas` y `Comisiones`. El menú de `MainLayout` cambia según el rol.
 
 ### Pruebas
 
-`tests/AutoBrillo.Web.Tests` es un proyecto xUnit con 94 pruebas. Cubre reglas, seguridad de roles, RLS declarado en las migraciones y comportamiento de pantallas y repositorios. El workflow `.github/workflows/build-test.yml` ejecuta `dotnet build` y `dotnet test`.
+`tests/AutoBrillo.Web.Tests` es un proyecto xUnit con 99 pruebas. Cubre reglas, seguridad de roles, RLS declarado en las migraciones y comportamiento de pantallas y repositorios. El workflow `.github/workflows/build-test.yml` ejecuta `dotnet build` y `dotnet test`.
 
 ## Recorrido de una solicitud
 

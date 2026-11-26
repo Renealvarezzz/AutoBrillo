@@ -74,6 +74,8 @@ Clave compuesta `Id_Personas` + `Id_Tipos_Personas`. Borrar la persona borra sus
 
 Nombre y documento son obligatorios, el documento no se repite y hace falta al menos un tipo.
 
+En la pantalla, los tipos de persona se eligen con una lista siempre visible de casillas (`form-check`): la casilla a la izquierda y la etiqueta a la derecha. No es un desplegable.
+
 ## Usuarios y roles
 
 `usuarios` guarda `Nombre` único, `Password` (solo hash BCrypt), `Activo` y, en forma opcional, `Id_Personas`. Un usuario inactivo no inicia sesión. La relación con `roles` es N:M mediante `usuarios_roles`.
@@ -114,6 +116,10 @@ erDiagram
 Clave compuesta. No se elimina un tipo que esté en uso. Al eliminar el producto se eliminan sus vínculos.
 
 La descripción es única, hace falta al menos un tipo y el stock de una edición no se cambia por el `PUT` de productos: entra por compras o por movimientos.
+
+En la pantalla, Servicio, Producto, Insumo y Adicional se marcan con la misma lista de casillas. Los roles de un usuario siguen en tarjetas: no son un selector de tipos.
+
+Las tablas de personas, productos y el resto de los listados muestran la columna Acciones con botones compactos (`btn-sm`) agrupados en una sola línea, con ícono y texto accesible.
 
 ## Vehículos
 
