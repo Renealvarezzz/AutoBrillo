@@ -73,6 +73,93 @@ body.autobrillo-sesion .tabla-contenedor {
     overflow-x: auto;
 }
 
-body.autobrillo-sesion table.dataTable button {
+body.autobrillo-sesion table.dataTable button:not(.btn) {
     margin: 0 0.15rem;
+}
+
+/* Tipos (producto, persona): lista de casillas siempre visible, sin desplegable. */
+body.autobrillo-sesion .selector-tipos {
+    max-width: 620px;
+    margin: 1.25rem 0;
+}
+
+body.autobrillo-sesion .selector-tipos > label {
+    margin-bottom: 0.42rem;
+}
+
+body.autobrillo-sesion .lista-checks {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 0.75rem 0.9rem;
+    border: 1px solid var(--bs-border-color, #dee2e6);
+    border-radius: var(--bs-border-radius, 0.375rem);
+    background: #fff;
+}
+
+body.autobrillo-sesion .lista-checks .form-check {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-height: 1.5rem;
+    margin: 0;
+    padding: 0.15rem 0;
+}
+
+body.autobrillo-sesion .lista-checks .form-check-input {
+    float: none;
+    position: static;
+    flex: 0 0 auto;
+    width: 1.15em;
+    height: 1.15em;
+    margin: 0;
+    padding: 0;
+    border-radius: 0.25em;
+    cursor: pointer;
+}
+
+body.autobrillo-sesion .lista-checks .form-check-label {
+    display: inline;
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+body.autobrillo-sesion .selector-tipos small {
+    display: block;
+    margin-top: 0.45rem;
+    color: #6c757d;
+}
+
+/* Misma familia tipográfica que el resto del panel; tamaño y radio los define Bootstrap. */
+body.autobrillo-sesion .btn {
+    font-family: inherit;
+}
+
+body.autobrillo-sesion td.acciones-tabla,
+body.autobrillo-sesion th.acciones-tabla {
+    width: 1%;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+body.autobrillo-sesion td.acciones-tabla {
+    display: table-cell;
+    text-align: end;
+}
+
+body.autobrillo-sesion .acciones-tabla .btn-group {
+    flex-wrap: nowrap;
+    vertical-align: middle;
+}
+
+body.autobrillo-sesion table.dataTable .acciones-tabla .btn,
+body.autobrillo-sesion table.dataTable .btn-group > .btn {
+    margin: 0;
+}
+
+body.autobrillo-sesion .acciones-tabla .btn .bi {
+    font-size: 0.95rem;
+    line-height: 1;
 }

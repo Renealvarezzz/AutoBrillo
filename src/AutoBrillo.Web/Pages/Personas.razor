@@ -31,28 +31,32 @@
             </div>
         </div>
 
-        <div class="grilla-roles">
-            @foreach (var tipo in tipos)
-            {
-                var seleccionado = TipoSeleccionado(tipo.Id_Tipos_Personas);
-                <label class="tarjeta-rol @(seleccionado ? "rol-seleccionado" : "")">
-                    <input type="checkbox" checked="@seleccionado" @onchange="() => CambiarTipo(tipo.Id_Tipos_Personas)" />
-                    <span class="detalle-rol"><small>TIPO</small><strong>@tipo.Descripcion</strong></span>
-                    <span class="estado-rol" aria-hidden="true">✓</span>
-                </label>
-            }
+        <div class="campo-abm selector-tipos">
+            <label id="etiqueta-tipos-persona">Tipos de persona</label>
+            <div class="lista-checks" role="group" aria-labelledby="etiqueta-tipos-persona">
+                @foreach (var tipo in tipos)
+                {
+                    var idTipo = tipo.Id_Tipos_Personas;
+                    var seleccionado = TipoSeleccionado(idTipo);
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="@($"tipo-persona-{idTipo}")" checked="@seleccionado" @onchange="() => CambiarTipo(idTipo)" />
+                        <label class="form-check-label" for="@($"tipo-persona-{idTipo}")">@tipo.Descripcion</label>
+                    </div>
+                }
+            </div>
+            <small>Podés seleccionar uno o varios tipos.</small>
         </div>
 
         <div class="acciones-formulario">
-            <button @onclick="GuardarPersona">@(edicion.Id_Personas == 0 ? "Agregar persona" : "Guardar cambios")</button>
+            <button type="button" class="btn btn-primary" @onclick="GuardarPersona">@(edicion.Id_Personas == 0 ? "Agregar persona" : "Guardar cambios")</button>
             @if (edicion.Id_Personas != 0)
             {
-                <button class="secundario" @onclick="CancelarPersona">Cancelar</button>
+                <button type="button" class="btn btn-outline-secondary" @onclick="CancelarPersona">Cancelar</button>
             }
         </div>
 
         <TablaDatos Id="tabla-personas" Datos="personas">
-                <thead><tr><th>Id</th><th>Nombre</th><th>Documento</th><th>Teléfono</th><th>Tipos</th><th>Estado</th><th>Acciones</th></tr></thead>
+                <thead><tr><th>Id</th><th>Nombre</th><th>Documento</th><th>Teléfono</th><th>Tipos</th><th>Estado</th><th class="acciones-tabla">Acciones</th></tr></thead>
                 <tbody>
                     @foreach (var persona in personas)
                     {
@@ -64,9 +68,11 @@
                             <td>@string.Join(", ", persona.Tipos)</td>
                             <td>@(persona.Activo ? "Activo" : "Desactivado")</td>
                             <td class="acciones-tabla">
-                                <button class="boton-icono @(persona.Activo ? "peligro" : "secundario")" @onclick="() => CambiarEstado(persona)" title="@(persona.Activo ? "Desactivar" : "Activar")">@(persona.Activo ? "×" : "✓")</button>
-                                <button class="boton-icono secundario" @onclick="() => EditarPersona(persona)" title="Editar">✎</button>
-                                <button class="boton-icono peligro" @onclick="() => EliminarPersona(persona)" title="Eliminar">⌫</button>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <button type="button" class="btn btn-sm @(persona.Activo ? "btn-outline-warning" : "btn-outline-success")" @onclick="() => CambiarEstado(persona)" title="@(persona.Activo ? "Desactivar" : "Activar")" aria-label="@(persona.Activo ? "Desactivar persona" : "Activar persona")"><i class="bi @(persona.Activo ? "bi-slash-circle" : "bi-check-lg")" aria-hidden="true"></i></button>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" @onclick="() => EditarPersona(persona)" title="Editar" aria-label="Editar persona"><i class="bi bi-pencil" aria-hidden="true"></i></button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" @onclick="() => EliminarPersona(persona)" title="Eliminar" aria-label="Eliminar persona"><i class="bi bi-trash" aria-hidden="true"></i></button>
+                                </div>
                             </td>
                         </tr>
                     }
@@ -78,14 +84,14 @@
         <h2>Tipos de persona</h2>
         <div class="formulario-abm">
             <input @bind="tipoEdicion.Descripcion" placeholder="Ej.: Cliente" maxlength="100" />
-            <button @onclick="GuardarTipo">@(tipoEdicion.Id_Tipos_Personas == 0 ? "Agregar tipo" : "Guardar tipo")</button>
+            <button type="button" class="btn btn-primary" @onclick="GuardarTipo">@(tipoEdicion.Id_Tipos_Personas == 0 ? "Agregar tipo" : "Guardar tipo")</button>
             @if (tipoEdicion.Id_Tipos_Personas != 0)
             {
-                <button class="secundario" @onclick="() => tipoEdicion = new()">Cancelar</button>
+                <button type="button" class="btn btn-outline-secondary" @onclick="() => tipoEdicion = new()">Cancelar</button>
             }
         </div>
         <TablaDatos Id="tabla-tipos-personas" Datos="tipos">
-            <thead><tr><th>Id</th><th>Descripción</th><th>Acciones</th></tr></thead>
+            <thead><tr><th>Id</th><th>Descripción</th><th class="acciones-tabla">Acciones</th></tr></thead>
             <tbody>
                 @foreach (var tipo in tipos)
                 {
@@ -93,8 +99,10 @@
                         <td>@tipo.Id_Tipos_Personas</td>
                         <td>@tipo.Descripcion</td>
                         <td class="acciones-tabla">
-                            <button class="boton-icono secundario" @onclick="() => EditarTipo(tipo)" title="Editar">✎</button>
-                            <button class="boton-icono peligro" @onclick="() => EliminarTipo(tipo)" title="Eliminar">⌫</button>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <button type="button" class="btn btn-sm btn-outline-primary" @onclick="() => EditarTipo(tipo)" title="Editar" aria-label="Editar tipo de persona"><i class="bi bi-pencil" aria-hidden="true"></i></button>
+                                <button type="button" class="btn btn-sm btn-outline-danger" @onclick="() => EliminarTipo(tipo)" title="Eliminar" aria-label="Eliminar tipo de persona"><i class="bi bi-trash" aria-hidden="true"></i></button>
+                            </div>
                         </td>
                     </tr>
                 }

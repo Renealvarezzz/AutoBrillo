@@ -19,9 +19,6 @@ public partial class Productos
 
     private async Task CargarAsync() { productos = await Gestion.ObtenerProductosAsync() ?? []; tipos = await Gestion.ObtenerTiposProductosAsync() ?? []; }
     private bool TipoSeleccionado(int id) => edicion.Id_Tipos_Productos.Contains(id);
-    private string TextoTiposSeleccionados => edicion.Id_Tipos_Productos.Count == 0
-        ? "Seleccionar tipos"
-        : string.Join(", ", tipos.Where(tipo => TipoSeleccionado(tipo.Id_Tipos_Productos)).Select(tipo => tipo.Descripcion));
 
     private void CambiarTipo(int id)
     {

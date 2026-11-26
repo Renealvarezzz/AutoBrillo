@@ -125,7 +125,7 @@ No se puede eliminar un tipo que esté asignado a productos. Al eliminar un prod
 - La descripción es única.
 - Costo, venta y stock no aceptan valores negativos.
 - Se puede crear, editar, activar/desactivar y eliminar productos.
-- El selector de tipos es un desplegable visual que permite seleccionar uno o varios tipos.
+- El selector de tipos es una lista siempre visible de casillas. Se puede marcar uno o varios tipos.
 - Los campos del formulario se muestran verticalmente y con etiquetas.
 
 ### API

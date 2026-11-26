@@ -22,17 +22,19 @@ else
                 </select></div>
             <div class="campo-abm"><label>Precio (Gs.)</label><input type="number" min="0" step="1" @bind="precio" /></div>
         </div>
-        <div class="acciones-formulario"><button @onclick="GuardarPrecio">Guardar precio</button></div>
+        <div class="acciones-formulario"><button type="button" class="btn btn-primary" @onclick="GuardarPrecio">Guardar precio</button></div>
         <TablaDatos Id="tabla-precios" Datos="precios">
-                <thead><tr><th>Servicio</th><th>Tipo de vehículo</th><th>Precio</th><th>Actualizado</th><th>Acciones</th></tr></thead>
+                <thead><tr><th>Servicio</th><th>Tipo de vehículo</th><th>Precio</th><th>Actualizado</th><th class="acciones-tabla">Acciones</th></tr></thead>
                 <tbody>
                     @foreach (var p in precios)
                     {
                         <tr>
                             <td>@p.Producto</td><td>@p.TipoVehiculo</td><td data-order="@p.Precio.ToString(System.Globalization.CultureInfo.InvariantCulture)">@Gs(p.Precio)</td><td data-order="@p.FechaActualizacion.ToString("yyyyMMddHHmmss")">@Fecha(p.FechaActualizacion)</td>
                             <td class="acciones-tabla">
-                                <button type="button" class="boton-icono secundario" title="Editar" aria-label="Editar precio" @onclick="() => EditarPrecio(p)">✎</button>
-                                <button type="button" class="boton-icono peligro" title="Eliminar" aria-label="Eliminar precio" @onclick="() => EliminarPrecio(p)">✕</button>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <button type="button" class="btn btn-sm btn-outline-primary" title="Editar" aria-label="Editar precio" @onclick="() => EditarPrecio(p)"><i class="bi bi-pencil" aria-hidden="true"></i></button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" title="Eliminar" aria-label="Eliminar precio" @onclick="() => EliminarPrecio(p)"><i class="bi bi-trash" aria-hidden="true"></i></button>
+                                </div>
                             </td>
                         </tr>
                     }
@@ -44,19 +46,21 @@ else
         <h2>Tipos de vehículo</h2>
         <div class="formulario-abm">
             <input @bind="tipoEdicion.Descripcion" maxlength="100" placeholder="Ej.: Camión" />
-            <button @onclick="GuardarTipo">@(tipoEdicion.Id_Tipos_Vehiculos == 0 ? "Agregar tipo" : "Guardar tipo")</button>
-            @if (tipoEdicion.Id_Tipos_Vehiculos != 0) { <button class="secundario" @onclick="() => tipoEdicion = new()">Cancelar</button> }
+            <button type="button" class="btn btn-primary" @onclick="GuardarTipo">@(tipoEdicion.Id_Tipos_Vehiculos == 0 ? "Agregar tipo" : "Guardar tipo")</button>
+            @if (tipoEdicion.Id_Tipos_Vehiculos != 0) { <button type="button" class="btn btn-outline-secondary" @onclick="() => tipoEdicion = new()">Cancelar</button> }
         </div>
         <TablaDatos Id="tabla-tipos-vehiculos" Datos="tipos">
-            <thead><tr><th>Descripción</th><th>Estado</th><th>Acciones</th></tr></thead>
+            <thead><tr><th>Descripción</th><th>Estado</th><th class="acciones-tabla">Acciones</th></tr></thead>
             <tbody>
                 @foreach (var t in tipos)
                 {
                     <tr>
                         <td>@t.Descripcion</td><td>@(t.Activo ? "Activo" : "Desactivado")</td>
                         <td class="acciones-tabla">
-                            <button type="button" class="boton-icono secundario" title="Editar" aria-label="Editar tipo de vehículo" @onclick="() => tipoEdicion = new TipoVehiculoDto { Id_Tipos_Vehiculos = t.Id_Tipos_Vehiculos, Descripcion = t.Descripcion, Activo = t.Activo }">✎</button>
-                            <button type="button" class="boton-icono @(t.Activo ? "peligro" : "secundario")" title="@(t.Activo ? "Desactivar" : "Activar")" @onclick="() => CambiarEstadoTipo(t)">@(t.Activo ? "⏻" : "✓")</button>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <button type="button" class="btn btn-sm btn-outline-primary" title="Editar" aria-label="Editar tipo de vehículo" @onclick="() => tipoEdicion = new TipoVehiculoDto { Id_Tipos_Vehiculos = t.Id_Tipos_Vehiculos, Descripcion = t.Descripcion, Activo = t.Activo }"><i class="bi bi-pencil" aria-hidden="true"></i></button>
+                                <button type="button" class="btn btn-sm @(t.Activo ? "btn-outline-warning" : "btn-outline-success")" title="@(t.Activo ? "Desactivar" : "Activar")" aria-label="@(t.Activo ? "Desactivar tipo de vehículo" : "Activar tipo de vehículo")" @onclick="() => CambiarEstadoTipo(t)"><i class="bi @(t.Activo ? "bi-slash-circle" : "bi-check-lg")" aria-hidden="true"></i></button>
+                            </div>
                         </td>
                     </tr>
                 }
@@ -71,17 +75,17 @@ else
             <div class="campo-abm"><label>Descripción</label><input maxlength="150" @bind="adicionalNombre" placeholder="Ej.: Cera" /></div>
             <div class="campo-abm"><label>Precio (Gs.)</label><input type="number" min="0" step="1" @bind="adicionalPrecio" /></div>
         </div>
-        <div class="acciones-formulario"><button @onclick="GuardarAdicional">@(idAdicional == 0 ? "Agregar adicional" : "Guardar adicional")</button>
-            @if (idAdicional != 0) { <button class="secundario" @onclick="LimpiarAdicional">Cancelar</button> }
+        <div class="acciones-formulario"><button type="button" class="btn btn-primary" @onclick="GuardarAdicional">@(idAdicional == 0 ? "Agregar adicional" : "Guardar adicional")</button>
+            @if (idAdicional != 0) { <button type="button" class="btn btn-outline-secondary" @onclick="LimpiarAdicional">Cancelar</button> }
         </div>
         <TablaDatos Id="tabla-adicionales" Datos="productos">
-            <thead><tr><th>Adicional</th><th>Precio de venta</th><th>Estado</th><th></th></tr></thead>
+            <thead><tr><th>Adicional</th><th>Precio de venta</th><th>Estado</th><th class="acciones-tabla">Acciones</th></tr></thead>
             <tbody>
                 @foreach (var a in adicionales)
                 {
                     <tr>
                         <td>@a.Descripcion</td><td data-order="@a.PrecioDeVenta.ToString(System.Globalization.CultureInfo.InvariantCulture)">@Gs(a.PrecioDeVenta)</td><td>@(a.Activo ? "Activo" : "Desactivado")</td>
-                        <td><button type="button" class="boton-icono secundario" title="Editar" aria-label="Editar adicional" @onclick="() => EditarAdicional(a)">✎</button></td>
+                        <td class="acciones-tabla"><div class="btn-group btn-group-sm" role="group"><button type="button" class="btn btn-sm btn-outline-primary" title="Editar" aria-label="Editar adicional" @onclick="() => EditarAdicional(a)"><i class="bi bi-pencil" aria-hidden="true"></i></button></div></td>
                     </tr>
                 }
             </tbody>
@@ -102,15 +106,15 @@ else
                 </select></div>
             <div class="campo-abm"><label>Cantidad</label><input type="number" min="1" step="1" @bind="cantidadInsumo" /></div>
         </div>
-        <div class="acciones-formulario"><button @onclick="GuardarInsumo">Guardar configuración</button></div>
+        <div class="acciones-formulario"><button type="button" class="btn btn-primary" @onclick="GuardarInsumo">Guardar configuración</button></div>
         <TablaDatos Id="tabla-insumos" Datos="configuracion">
-            <thead><tr><th>Servicio</th><th>Insumo</th><th>Cantidad</th><th></th></tr></thead>
+            <thead><tr><th>Servicio</th><th>Insumo</th><th>Cantidad</th><th class="acciones-tabla">Acciones</th></tr></thead>
             <tbody>
                 @foreach (var fila in configuracion)
                 {
                     <tr>
                         <td>@fila.Servicio</td><td>@fila.Insumo</td><td data-order="@fila.Cantidad.ToString(System.Globalization.CultureInfo.InvariantCulture)">@Gs(fila.Cantidad)</td>
-                        <td><button type="button" class="boton-icono peligro" title="Quitar" aria-label="Quitar insumo del servicio" @onclick="() => QuitarInsumo(fila)">✕</button></td>
+                        <td class="acciones-tabla"><div class="btn-group btn-group-sm" role="group"><button type="button" class="btn btn-sm btn-outline-danger" title="Quitar" aria-label="Quitar insumo del servicio" @onclick="() => QuitarInsumo(fila)"><i class="bi bi-x-lg" aria-hidden="true"></i></button></div></td>
                     </tr>
                 }
             </tbody>
@@ -145,8 +149,8 @@ else
             <p class="tarjeta-dato"><small>Precio base @Gs(precioCalculado.PrecioBase) + adicionales @Gs(precioCalculado.TotalAdicionales)</small><strong>@Gs(precioCalculado.Total)</strong></p>
         }
         <div class="acciones-formulario">
-            <button @onclick="CalcularPrecio">Calcular precio</button>
-            <button class="secundario" @onclick="ConsumirInsumos">Descontar insumos del servicio</button>
+            <button type="button" class="btn btn-primary" @onclick="CalcularPrecio">Calcular precio</button>
+            <button type="button" class="btn btn-outline-secondary" @onclick="ConsumirInsumos">Descontar insumos del servicio</button>
         </div>
     </div>
 }
