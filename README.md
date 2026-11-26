@@ -4,6 +4,7 @@ Sistema académico de la UPE (Paraguay) para la gestión de un lavadero de autos
 
 ## Enlaces publicados
 
+
 - **Aplicación web:** https://autobrillo-lemon.vercel.app
 - **API:** https://api.autobrillo.tech/health
 - **Base de datos:** PostgreSQL en Supabase, región `sa-east-1`, accedida por el session pooler
